@@ -3,18 +3,8 @@
 
 <head>
     <script>
-        const users = {
-            Kris: {
-                score: 0
-            },
-            Lyn: {
-                score: 0
-            },
-            Mag: {
-                score: 0
-            }
-        };
-
+        const users = {};
+        const totalColumns = 5;
         // Capitalizes the first letter of each word
         String.prototype.toProperCase = function() {
             return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
@@ -29,8 +19,8 @@
             const cells = document.querySelectorAll(".board tbody tr td");    
             for (cell = 0; cell < cells.length; cell++) {
                 const thisCell = cells[cell];
-                const thisX = cell%6;
-                const thisY = Math.floor(cell/6);
+                const thisX = cell % totalColumns;
+                const thisY = Math.floor(cell / totalColumns);
                 thisCell.onclick = function() {
                     selectedValue = parseInt(thisCell.innerText.replace("$", ""));
                     thisCell.classList.toggle("selected");
@@ -273,7 +263,6 @@
                     <td>Cat3</td>
                     <td>Cat4</td>
                     <td>Cat5</td>
-                    <td>Cat6</td>
                 </thead>
                 <tbody>
                     <tr>
@@ -282,7 +271,6 @@
                         <td>$100</td>
                         <td>$100</td>
                         <td>$100</td>
-                        <td>$100</td>
                     </tr>
                     <tr>
                         <td>$200</td>
@@ -290,10 +278,8 @@
                         <td>$200</td>
                         <td>$200</td>
                         <td>$200</td>
-                        <td>$200</td>
                     </tr>
                     <tr>
-                        <td>$300</td>
                         <td>$300</td>
                         <td>$300</td>
                         <td>$300</td>
@@ -306,10 +292,8 @@
                         <td>$400</td>
                         <td>$400</td>
                         <td>$400</td>
-                        <td>$400</td>
                     </tr>
                     <tr>
-                        <td>$500</td>
                         <td>$500</td>
                         <td>$500</td>
                         <td>$500</td>
@@ -347,7 +331,6 @@
                     <td>Cat3</td>
                     <td>Cat4</td>
                     <td>Cat5</td>
-                    <td>Cat6</td>
                 </thead>
                 <tbody>
                     <tr>
@@ -356,7 +339,6 @@
                         <td>$200</td>
                         <td>$200</td>
                         <td>$200</td>
-                        <td>$200</td>
                     </tr>
                     <tr>
                         <td>$400</td>
@@ -364,10 +346,8 @@
                         <td>$400</td>
                         <td>$400</td>
                         <td>$400</td>
-                        <td>$400</td>
                     </tr>
                     <tr>
-                        <td>$600</td>
                         <td>$600</td>
                         <td>$600</td>
                         <td>$600</td>
@@ -380,10 +360,8 @@
                         <td>$800</td>
                         <td>$800</td>
                         <td>$800</td>
-                        <td>$800</td>
                     </tr>
                     <tr>
-                        <td>$1000</td>
                         <td>$1000</td>
                         <td>$1000</td>
                         <td>$1000</td>
