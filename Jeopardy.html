@@ -1,0 +1,399 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <script>
+        const users = {
+            Kris: {
+                score: 0
+            },
+            Lyn: {
+                score: 0
+            },
+            Mag: {
+                score: 0
+            }
+        };
+
+        // Capitalizes the first letter of each word
+        String.prototype.toProperCase = function() {
+            return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        };
+
+        let selectedValue = 0;
+
+        function loadBoard() {
+            // Set all the cells to be clickable
+            const cells = document.querySelectorAll(".board tbody tr td");    
+            for (cell = 0; cell < cells.length; cell++) {
+                const thisCell = cells[cell];
+                const thisX = cell%6;
+                const thisY = Math.floor(cell/6);
+                thisCell.onclick = function() {
+                    selectedValue = parseInt(thisCell.innerText.replace("$", ""));
+                    thisCell.classList.toggle("selected");
+                    
+                    //TODO Set it up to show the set question and such
+                }
+            }
+
+            // Load the questions in from a JSON file? Or just load it from the object above?
+            loadUsers();
+        }
+
+        window.onload = loadBoard();
+
+        function addUser(boardID) {
+            let newUName = document.getElementById("newUserText" + boardID).value;
+            if (!newUName || !newUName.length) return alert("Empty name field!");
+            newUName = newUName.toProperCase();
+            
+            if (users[newUName]) {
+                alert("This user already exists");
+            } else {
+                users[newUName] = {
+                    score: 0
+                };
+                loadUsers();
+            }
+        }
+
+        function loadUsers() {
+            // Grab the div that shows the users
+            const userDivs = document.querySelectorAll("div.users");
+            
+            // Wipe the div out so we can reset it
+            for ([index, userDiv] of userDivs.entries()) {
+                userDiv.innerHTML = "";
+
+                // Add in each user
+                Object.keys(users).forEach((userName, ix) => {
+                    const score = users[userName].score;
+                    const userID = "user" + ix;
+                    const div = document.createElement("div");
+                    div.className = "user " + userID;
+                    div.innerHTML = 
+                    `<div class="uName">${userName.toProperCase()}</div>
+                        <div class="uScore">${score}</div>
+                        <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', 1, ${index})">+</a>
+                        <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', -1, ${index})">-</a>`;
+                    userDiv.appendChild(div);
+                });
+            }
+        }
+
+
+
+        function crementUser(uID, dir, boardID=null) {
+            const userDivs = document.querySelectorAll("div.users");
+            const userName  = userDivs[0].querySelector(`.${uID} .uName`).innerText;
+            const customAmountArea = document.getElementById("customAmountText"+boardID);
+            const customAmount = customAmountArea && customAmountArea.value ? parseInt(customAmountArea.value) : null;
+            
+            let score;
+            if (customAmount && customAmount > 0) {
+                // Up it by the custom set amount
+                score = users[userName].score + customAmount;
+                users[userName].score = score;
+                
+                // Then wipe out the textArea
+                customAmountArea.value = "";
+            } else {
+                score = users[userName].score + (selectedValue * dir);
+                users[userName].score = score;
+            }
+            
+            for (userDiv of userDivs) {        
+                const userScore = userDiv.querySelector(`.${uID} .uScore`);
+                userScore.innerText = score.toString()
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --blue: #060CE9;
+            --yellow: #ffbb00;
+            --shadow: 1px 2px 1px black;
+        }
+
+        body {
+            box-sizing: border-box;
+            background-color: lightgray;
+        }
+
+        .mainContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            margin-bottom: 500px;
+        }
+
+        .boardContainer {
+            width: calc(100% - 300px);
+            height: 100%;
+        }
+
+        .boardContainer table {
+            width: 700px;
+            table-layout: fixed;
+            text-align: center;
+            font-size: 36px;
+            border-collapse: collapse;
+            margin: 0 auto;
+            background-color: var(--blue);
+        }
+
+        .boardContainer thead {
+            max-width: 150px;
+            overflow: wrap;
+            font-weight: bold;
+        }
+
+        .boardContainer td {
+            max-width: 150px;
+            padding: 10px;
+            border: 4px solid black;
+            color: var(--yellow);
+            text-shadow: var(--shadow);
+        }
+
+        .boardContainer tbody td:hover,
+        .boardContainer tbody td.selected {
+            background-color: lightgray;
+            cursor: pointer;
+            color: black;
+            text-shadow: none;
+            font-weight: 600;
+        }
+
+
+
+
+
+        .scoreContainer {
+            width: 300px;
+            position: relative;
+            background-color: var(--blue);
+            color: var(--yellow);
+            text-shadow: var(--shadow);
+            padding: 10px;
+            border: 4px solid black;
+        }
+
+        .scoreContainer .user {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .scoreContainer .user div {
+            font-size: 32px;
+            margin-right: 5px;
+        }
+
+        .scoreContainer .user .uName {
+            width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .scoreContainer .user .uScore {
+            width: 80px;
+            text-align: right;
+            border-left: 2px solid black;
+        }
+
+        .scoreContainer .menter {
+            font-size: 24px;
+            text-align: center;
+            margin: 0 5px;
+            text-decoration: none;
+            color: black;
+            border-radius: 50%;
+            min-width: 25px;
+            padding: 4px;
+            background-color: lightgray;
+            text-shadow: none;
+            font-weight: 900;
+        }
+
+        .scoreContainer .bottom {
+            position: absolute;
+            width: 100%;
+            bottom: 5px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .scoreContainer .bottom div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scoreContainer .bottom div>div {
+            justify-content: left;
+            flex-direction: row;
+            margin: 5px;
+        }
+
+        .scoreContainer .bottom button {
+            margin-left: 5px;
+            height: 25px;
+        }
+    </style>
+</head>
+
+<body onload="loadBoard()">
+    <div class="mainContainer">
+        <div class="scoreContainer">
+            <div class="users">
+                <!-- This will house the users' name and scores -->
+            </div>
+            <div class="bottom">
+                <!-- This will house the management buttons -->
+                <div>
+                    <div>
+                        <input id="newUserText1" type="text" placeholder="User Name" />
+                        <button id="newUserButton1" onclick="addUser(1)">Add User</button>
+                    </div>
+                    <div>
+                        <input id="customAmountText0" type="text" placeholder="Amount" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="boardContainer">
+            <table class="board">
+                <thead>
+                    <td>Cat1</td>
+                    <td>Cat2</td>
+                    <td>Cat3</td>
+                    <td>Cat4</td>
+                    <td>Cat5</td>
+                    <td>Cat6</td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>$100</td>
+                        <td>$100</td>
+                        <td>$100</td>
+                        <td>$100</td>
+                        <td>$100</td>
+                        <td>$100</td>
+                    </tr>
+                    <tr>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                    </tr>
+                    <tr>
+                        <td>$300</td>
+                        <td>$300</td>
+                        <td>$300</td>
+                        <td>$300</td>
+                        <td>$300</td>
+                        <td>$300</td>
+                    </tr>
+                    <tr>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                    </tr>
+                    <tr>
+                        <td>$500</td>
+                        <td>$500</td>
+                        <td>$500</td>
+                        <td>$500</td>
+                        <td>$500</td>
+                        <td>$500</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mainContainer">
+        <div class="scoreContainer">
+            <div class="users">
+                <!-- This will house the users' name and scores -->
+            </div>
+            <div class="bottom">
+                <!-- This will house the management buttons -->
+                <div>
+                    <div>
+                        <input id="newUserText2" type="text" placeholder="User Name" />
+                        <button id="newUserButton2" onclick="addUser(2)">Add User</button>
+                    </div>
+                    <div>
+                        <input id="customAmountText1" type="text" placeholder="Amount" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="boardContainer">
+            <table class="board">
+                <thead>
+                    <td>Cat1</td>
+                    <td>Cat2</td>
+                    <td>Cat3</td>
+                    <td>Cat4</td>
+                    <td>Cat5</td>
+                    <td>Cat6</td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                        <td>$200</td>
+                    </tr>
+                    <tr>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                        <td>$400</td>
+                    </tr>
+                    <tr>
+                        <td>$600</td>
+                        <td>$600</td>
+                        <td>$600</td>
+                        <td>$600</td>
+                        <td>$600</td>
+                        <td>$600</td>
+                    </tr>
+                    <tr>
+                        <td>$800</td>
+                        <td>$800</td>
+                        <td>$800</td>
+                        <td>$800</td>
+                        <td>$800</td>
+                        <td>$800</td>
+                    </tr>
+                    <tr>
+                        <td>$1000</td>
+                        <td>$1000</td>
+                        <td>$1000</td>
+                        <td>$1000</td>
+                        <td>$1000</td>
+                        <td>$1000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
