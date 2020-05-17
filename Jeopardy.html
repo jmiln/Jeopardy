@@ -3,7 +3,11 @@
 
 <head>
     <script>
-        const users = {};
+        const users = {
+            Chris: {
+                score: 20
+            }
+        };
         const totalColumns = 5;
         // Capitalizes the first letter of each word
         String.prototype.toProperCase = function() {
@@ -13,19 +17,27 @@
         };
 
         let selectedValue = 0;
+        let boardWidth, boardHeight;
 
         function loadBoard() {
             // Set all the cells to be clickable
-            const cells = document.querySelectorAll(".board tbody tr td");    
+            const cells = document.querySelectorAll(".tableContainer table tbody tr td");    
             for (cell = 0; cell < cells.length; cell++) {
                 const thisCell = cells[cell];
                 const thisX = cell % totalColumns;
                 const thisY = Math.floor(cell / totalColumns);
                 thisCell.onclick = function() {
                     selectedValue = parseInt(thisCell.innerText.replace("$", ""));
+
+
+                    const allSelected = document.getElementsByClassName("selected");
+                    while (allSelected.length > 0) {
+                        allSelected[0].classList.remove('selected');
+                    }
                     thisCell.classList.toggle("selected");
+                    thisCell.classList.toggle("visited");
                     
-                    //TODO Set it up to show the set question and such
+                    //TODO Set it up to launch the set question and such
                 }
             }
 
@@ -36,7 +48,8 @@
         window.onload = loadBoard();
 
         function addUser(boardID) {
-            let newUName = document.getElementById("newUserText" + boardID).value;
+            let uNameText = document.getElementById("newUserText" + boardID);
+            let newUName = uNameText.value;
             if (!newUName || !newUName.length) return alert("Empty name field!");
             newUName = newUName.toProperCase();
             
@@ -45,7 +58,8 @@
             } else {
                 users[newUName] = {
                     score: 0
-                };
+                };                    
+                uNameText.value = "";
                 loadUsers();
             }
         }
@@ -100,12 +114,39 @@
                 userScore.innerText = score.toString()
             }
         }
+
+        function clearBoard(num) {
+            if (confirm("Are you sure you want to clear all selected tiles?")) {
+                const allSelected = document.querySelectorAll(`#board${num} .visited,#board${num} .selected`);
+                allSelected.forEach(selected => {
+                    selected.classList.remove("visited");
+                    selected.classList.remove("selected");
+                });
+            }
+        }
+        function resetScores() {
+            if (confirm("Are you sure you want to clear all players' scores?")) {
+                const userDivs = document.querySelectorAll("div.users");
+                userDivs.forEach(userDiv => {
+                    const scores = userDiv.querySelectorAll(".uScore");
+                    scores.forEach(score => {
+                        score.innerText = "0";
+                    });
+                });
+                Object.keys(users).forEach(user => {
+                    users[user].score = 0;
+                });
+            }
+        }
     </script>
     <style>
         :root {
             --blue: #060CE9;
             --yellow: #ffbb00;
+            --brightyellow: #daff00;
+            --orange: #ffa500;
             --shadow: 1px 2px 1px black;
+            --border: 4px solid black;
         }
 
         body {
@@ -125,7 +166,12 @@
             height: 100%;
         }
 
-        .boardContainer table {
+        .tableContainer {
+            width: 700px;
+            margin: 0 auto;
+        }
+
+        .tableContainer table {
             width: 700px;
             table-layout: fixed;
             text-align: center;
@@ -133,32 +179,52 @@
             border-collapse: collapse;
             margin: 0 auto;
             background-color: var(--blue);
+            margin-bottom: 10px;
         }
 
-        .boardContainer thead {
+        .tableContainer thead {
             max-width: 150px;
             overflow: wrap;
             font-weight: bold;
         }
 
-        .boardContainer td {
+        .tableContainer td {
             max-width: 150px;
             padding: 10px;
-            border: 4px solid black;
+            border: var(--border);
             color: var(--yellow);
             text-shadow: var(--shadow);
-        }
-
-        .boardContainer tbody td:hover,
-        .boardContainer tbody td.selected {
-            background-color: lightgray;
             cursor: pointer;
+        }
+        .tableContainer tbody td.selected,
+        .tableContainer tbody td.visited {
             color: black;
             text-shadow: none;
             font-weight: 600;
         }
 
+        .tableContainer tbody td.visited {
+            background-color: lightgray;
+        }
 
+        .tableContainer tbody td.selected {
+            /* background-color: #ffc04d !important; */
+            color: red;
+            border: 4px solid red;
+        }
+
+        .tableContainer .controls {
+            background-color: var(--blue);
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: var(--border);
+        }
+
+        .controls button {
+            margin: 10px;
+        }
 
 
 
@@ -169,7 +235,7 @@
             color: var(--yellow);
             text-shadow: var(--shadow);
             padding: 10px;
-            border: 4px solid black;
+            border: var(--border);
         }
 
         .scoreContainer .user {
@@ -256,52 +322,59 @@
             </div>
         </div>
         <div class="boardContainer">
-            <table class="board">
-                <thead>
-                    <td>Cat1</td>
-                    <td>Cat2</td>
-                    <td>Cat3</td>
-                    <td>Cat4</td>
-                    <td>Cat5</td>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>$100</td>
-                        <td>$100</td>
-                        <td>$100</td>
-                        <td>$100</td>
-                        <td>$100</td>
-                    </tr>
-                    <tr>
-                        <td>$200</td>
-                        <td>$200</td>
-                        <td>$200</td>
-                        <td>$200</td>
-                        <td>$200</td>
-                    </tr>
-                    <tr>
-                        <td>$300</td>
-                        <td>$300</td>
-                        <td>$300</td>
-                        <td>$300</td>
-                        <td>$300</td>
-                    </tr>
-                    <tr>
-                        <td>$400</td>
-                        <td>$400</td>
-                        <td>$400</td>
-                        <td>$400</td>
-                        <td>$400</td>
-                    </tr>
-                    <tr>
-                        <td>$500</td>
-                        <td>$500</td>
-                        <td>$500</td>
-                        <td>$500</td>
-                        <td>$500</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="tableContainer">
+                <table id="board1">
+                    <thead>
+                        <td>Cat1</td>
+                        <td>Cat2</td>
+                        <td>Cat3</td>
+                        <td>Cat4</td>
+                        <td>Cat5</td>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>$100</td>
+                            <td>$100</td>
+                            <td>$100</td>
+                            <td>$100</td>
+                            <td>$100</td>
+                        </tr>
+                        <tr>
+                            <td>$200</td>
+                            <td>$200</td>
+                            <td>$200</td>
+                            <td>$200</td>
+                            <td>$200</td>
+                        </tr>
+                        <tr>
+                            <td>$300</td>
+                            <td>$300</td>
+                            <td>$300</td>
+                            <td>$300</td>
+                            <td>$300</td>
+                        </tr>
+                        <tr>
+                            <td>$400</td>
+                            <td>$400</td>
+                            <td>$400</td>
+                            <td>$400</td>
+                            <td>$400</td>
+                        </tr>
+                        <tr>
+                            <td>$500</td>
+                            <td>$500</td>
+                            <td>$500</td>
+                            <td>$500</td>
+                            <td>$500</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="controls">
+                    <button onclick="clearBoard(1)">Reset Board</button>
+                    <button onclick="resetScores()">Reset Scores</button>
+                    <!-- <button>Show History</button> -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -318,58 +391,65 @@
                         <button id="newUserButton2" onclick="addUser(2)">Add User</button>
                     </div>
                     <div>
-                        <input id="customAmountText1" type="text" placeholder="Amount" />
+                        <input id="customAmountText1" type="text" placeholder="Custom Amount" />
                     </div>
                 </div>
             </div>
         </div>
         <div class="boardContainer">
-            <table class="board">
-                <thead>
-                    <td>Cat1</td>
-                    <td>Cat2</td>
-                    <td>Cat3</td>
-                    <td>Cat4</td>
-                    <td>Cat5</td>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>$200</td>
-                        <td>$200</td>
-                        <td>$200</td>
-                        <td>$200</td>
-                        <td>$200</td>
-                    </tr>
-                    <tr>
-                        <td>$400</td>
-                        <td>$400</td>
-                        <td>$400</td>
-                        <td>$400</td>
-                        <td>$400</td>
-                    </tr>
-                    <tr>
-                        <td>$600</td>
-                        <td>$600</td>
-                        <td>$600</td>
-                        <td>$600</td>
-                        <td>$600</td>
-                    </tr>
-                    <tr>
-                        <td>$800</td>
-                        <td>$800</td>
-                        <td>$800</td>
-                        <td>$800</td>
-                        <td>$800</td>
-                    </tr>
-                    <tr>
-                        <td>$1000</td>
-                        <td>$1000</td>
-                        <td>$1000</td>
-                        <td>$1000</td>
-                        <td>$1000</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="tableContainer">
+                <table id="board2">
+                    <thead>
+                        <td>Cat1</td>
+                        <td>Cat2</td>
+                        <td>Cat3</td>
+                        <td>Cat4</td>
+                        <td>Cat5</td>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>$200</td>
+                            <td>$200</td>
+                            <td>$200</td>
+                            <td>$200</td>
+                            <td>$200</td>
+                        </tr>
+                        <tr>
+                            <td>$400</td>
+                            <td>$400</td>
+                            <td>$400</td>
+                            <td>$400</td>
+                            <td>$400</td>
+                        </tr>
+                        <tr>
+                            <td>$600</td>
+                            <td>$600</td>
+                            <td>$600</td>
+                            <td>$600</td>
+                            <td>$600</td>
+                        </tr>
+                        <tr>
+                            <td>$800</td>
+                            <td>$800</td>
+                            <td>$800</td>
+                            <td>$800</td>
+                            <td>$800</td>
+                        </tr>
+                        <tr>
+                            <td>$1000</td>
+                            <td>$1000</td>
+                            <td>$1000</td>
+                            <td>$1000</td>
+                            <td>$1000</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="controls">
+                    <button onclick="clearBoard(2)">Reset Board</button>
+                    <button onclick="resetScores()">Reset Scores</button>
+                    <!-- <button>Show History</button> -->
+                </div>
+            </div>
         </div>
     </div>
 </body>
