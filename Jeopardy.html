@@ -4,7 +4,11 @@
 <head>
     <script>
         const users = {
+            Chris: {
+                score: 20
+            }
         };
+        const log = [];
         const totalColumns = 5;
         // Capitalizes the first letter of each word
         String.prototype.toProperCase = function() {
@@ -14,18 +18,21 @@
         };
 
         let selectedValue = 0;
+        let currentCat = "";
         let boardWidth, boardHeight;
 
         function loadBoard() {
             // Set all the cells to be clickable
-            const cells = document.querySelectorAll(".tableContainer table tbody tr td");    
+            const cells = document.querySelectorAll(".tableContainer table tbody tr td");
             for (cell = 0; cell < cells.length; cell++) {
                 const thisCell = cells[cell];
                 const thisX = cell % totalColumns;
                 const thisY = Math.floor(cell / totalColumns);
                 thisCell.onclick = function() {
+                    // Set the current category
+                    currentCat = thisCell.parentElement.parentElement.parentElement.querySelectorAll("thead td")[thisX].innerText;
+                    
                     selectedValue = parseInt(thisCell.innerText.replace("$", ""));
-
 
                     const allSelected = document.getElementsByClassName("selected");
                     while (allSelected.length > 0) {
@@ -37,6 +44,11 @@
                     //TODO Set it up to launch the set question and such
                 }
             }
+
+            // This *should* get the size of the table so I can overlay it later?
+            // Seems to work even though it throws an error...
+            boardHeight = document.getElementById("board1").offsetHeight;
+            boardWidth  = document.getElementById("board1").offsetWidth;
 
             // Load the questions in from a JSON file? Or just load it from the object above?
             loadUsers();
@@ -85,8 +97,6 @@
             }
         }
 
-
-
         function crementUser(uID, dir, boardID=null) {
             const userDivs = document.querySelectorAll("div.users");
             const userName  = userDivs[0].querySelector(`.${uID} .uName`).innerText;
@@ -96,16 +106,19 @@
             let score;
             if (customAmount && customAmount > 0) {
                 // Up it by the custom set amount
-                score = users[userName].score + customAmount;
+                score = users[userName].score + (customAmount * dir);
                 users[userName].score = score;
                 
                 // Then wipe out the textArea
                 customAmountArea.value = "";
+                log.push(`${userName}'s score was ${dir > 0 ? "in" : "de"}creased by ${customAmount} from ${currentCat}`);
             } else {
                 score = users[userName].score + (selectedValue * dir);
                 users[userName].score = score;
+                log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by ${selectedValue} from ${currentCat}`);
             }
             
+            // Change the score for both boards
             for (userDiv of userDivs) {        
                 const userScore = userDiv.querySelector(`.${uID} .uScore`);
                 userScore.innerText = score.toString()
@@ -119,8 +132,10 @@
                     selected.classList.remove("visited");
                     selected.classList.remove("selected");
                 });
+                log.push("Board has been cleared");
             }
         }
+
         function resetScores() {
             if (confirm("Are you sure you want to clear all players' scores?")) {
                 const userDivs = document.querySelectorAll("div.users");
@@ -133,7 +148,12 @@
                 Object.keys(users).forEach(user => {
                     users[user].score = 0;
                 });
+                log.push("Scores have been reset");
             }
+        }
+
+        function showHistory(num) {
+            console.log(log.join("\n"));
         }
     </script>
     <style>
@@ -369,7 +389,7 @@
                 <div class="controls">
                     <button onclick="clearBoard(1)">Reset Board</button>
                     <button onclick="resetScores()">Reset Scores</button>
-                    <!-- <button>Show History</button> -->
+                    <button onclick="showHistory(1)">Show History</button>
                 </div>
             </div>
         </div>
@@ -444,7 +464,7 @@
                 <div class="controls">
                     <button onclick="clearBoard(2)">Reset Board</button>
                     <button onclick="resetScores()">Reset Scores</button>
-                    <!-- <button>Show History</button> -->
+                    <button>Show History</button>
                 </div>
             </div>
         </div>
