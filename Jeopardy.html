@@ -111,7 +111,7 @@
                 
                 // Then wipe out the textArea
                 customAmountArea.value = "";
-                log.push(`${userName}'s score was ${dir > 0 ? "in" : "de"}creased by ${customAmount} from ${currentCat}`);
+                log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by a custom amount: ${customAmount}`);
             } else {
                 score = users[userName].score + (selectedValue * dir);
                 users[userName].score = score;
@@ -153,7 +153,20 @@
         }
 
         function showHistory(num) {
-            console.log(log.join("\n"));
+            // Fill in the list to be shown
+            const historyTA = document.getElementById("history"+num);
+            historyTA.innerHTML = log.join("\n");            
+
+            // Show the list (Or hide it if it's up)
+            const histDiv = document.querySelector("#board"+num).parentElement.querySelector(".history");
+            if (histDiv.classList.contains("hidden")) {
+                histDiv.classList.remove("hidden");
+                historyTA.scrollTop = historyTA.scrollHeight;
+                document.getElementById("histButton" + num).innerText = "Hide History";
+            } else {
+                histDiv.classList.add("hidden");
+                document.getElementById("histButton" + num).innerText = "Show History";
+            }
         }
     </script>
     <style>
@@ -164,6 +177,10 @@
             --orange: #ffa500;
             --shadow: 1px 2px 1px black;
             --border: 4px solid black;
+        }
+
+        .hidden {
+            display: none;
         }
 
         body {
@@ -186,6 +203,7 @@
         .tableContainer {
             width: 700px;
             margin: 0 auto;
+            position: relative;
         }
 
         .tableContainer table {
@@ -225,7 +243,6 @@
         }
 
         .tableContainer tbody td.selected {
-            /* background-color: #ffc04d !important; */
             color: red;
             border: 4px solid red;
         }
@@ -316,6 +333,26 @@
             margin-left: 5px;
             height: 25px;
         }
+
+        .history {
+            position: absolute;
+            top: 0px;
+            z-index: 10;
+            background-color: var(--blue);
+            width: 700px;
+            height: 400px;
+        }
+        .history textarea {
+            width: 672px;
+            height: 372px;       
+            font-size: 18px; 
+            font-weight: bold; 
+            padding: 10px;   
+            background-color: var(--blue);
+            color: var(--orange);
+            text-shadow: var(--shadow);
+            border: var(--border);
+        }
     </style>
 </head>
 
@@ -386,10 +423,19 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- TODO Make this work -->
+                <div class="question hidden"></div>
+                <div class="history hidden">
+                    <textarea id="history1">
+                        <!-- This will be populated when the history button is clicked -->
+                    </textarea>
+                </div>
+
                 <div class="controls">
                     <button onclick="clearBoard(1)">Reset Board</button>
                     <button onclick="resetScores()">Reset Scores</button>
-                    <button onclick="showHistory(1)">Show History</button>
+                    <button id="histButton1" style="width: 95px;" onclick="showHistory(1)">Show History</button>
                 </div>
             </div>
         </div>
@@ -461,10 +507,19 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- TODO Make this work -->
+                <div class="question hidden"></div>
+                <div class="history hidden">
+                    <textarea id="history2">
+                        <!-- This will be populated when the history button is clicked -->
+                    </textarea>
+                </div>
+
                 <div class="controls">
                     <button onclick="clearBoard(2)">Reset Board</button>
                     <button onclick="resetScores()">Reset Scores</button>
-                    <button>Show History</button>
+                    <button id="histButton2" style="width: 95px;" onclick="showHistory(2)">Show History</button>
                 </div>
             </div>
         </div>
