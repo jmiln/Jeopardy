@@ -1,8 +1,6 @@
 
 const users = {
-    Chris: {
-        score: 20
-    }
+
 };
 const log = [];
 const totalColumns = 5;
