@@ -28,6 +28,9 @@ function loadBoard() {
         boardCells.forEach((thisCell, ix) => {
             const thisX = ix % totalColumns;
             const thisY = Math.floor(ix / totalColumns);
+            const thisCat = boardContents[Object.keys(boardContents)[thisX]];
+            const thisQ   = thisCat[Object.keys(thisCat)[thisY]];
+            thisCell.innerHTML = "$" + thisQ.amount;
 
             thisCell.onclick = function() {
                 const boardID = this.parentElement.parentElement.parentElement.id;
