@@ -1,7 +1,4 @@
-
-const users = {
-
-};
+const users = {};
 const log = [];
 const totalColumns = 5;
 // Capitalizes the first letter of each word
@@ -20,6 +17,7 @@ function loadBoard() {
     for (board of ["board1", "board2"]) {
         const boardContents = questions[board];
         const catHeaders = document.querySelectorAll(`#${board} thead td`);
+        
         Object.keys(questions[board]).forEach((cat, ix) => {
             catHeaders[ix].innerText = cat;
         });
@@ -37,7 +35,6 @@ function loadBoard() {
                 
                 // Set the current category
                 currentCat = thisCell.parentElement.parentElement.parentElement.querySelectorAll("thead td")[thisX].innerText;
-                
                 selectedValue = parseInt(thisCell.innerText.replace("$", ""));
 
                 const allSelected = document.getElementsByClassName("selected");
@@ -45,9 +42,13 @@ function loadBoard() {
                     allSelected[0].classList.remove('selected');
                 }
                 thisCell.classList.toggle("selected");
-                thisCell.classList.toggle("visited");
                 
-                showQuestion(boardID, thisX, thisY);
+                if (!thisCell.classList.contains("visited")) {
+                    thisCell.classList.add("visited");    
+                    showQuestion(boardID, thisX, thisY);
+                } else {
+                    thisCell.classList.remove("visited");
+                }
             }
         });
     }
@@ -63,19 +64,19 @@ function loadBoard() {
 
 function showQuestion(boardID, x, y, bypassDD=false) {
     // Fill in the list to be shown
-    const questionDiv = document.getElementById(boardID).parentElement.querySelector("#question" + boardID.replace("board", ""));
+    const questionDiv = document.getElementById("question");
     const boardContents = questions[boardID];
     const thisCat = boardContents[Object.keys(boardContents)[x]];
     const thisQ   = thisCat[Object.keys(thisCat)[y]];
-    const ddDiv = document.getElementById(boardID).parentElement.querySelector("#dd" + boardID.replace("board", ""));
+    const ddDiv = document.getElementById("dd");
 
     if (thisQ.dailyDouble && ddDiv.classList.contains("hidden")) {
         // This needs to pop up a different screen before you get to the actual q/a
-        const ddDiv = document.getElementById(boardID).parentElement.querySelector("#dd" + boardID.replace("board", ""));
+        const ddDiv = document.getElementById("dd");
         ddDiv.innerHTML = `
             <div class="qDailyDouble">Daily Double!</div>
             <div class="qControls">
-                <button onclick='closeQDD("${boardID}")'>Go Back</button>
+                <button onclick='closeQDD()'>Go Back</button>
                 <button onclick='showQuestion("${boardID}", ${x}, ${y}, true)'>Continue</button>
             </div>
         `;
@@ -89,7 +90,7 @@ function showQuestion(boardID, x, y, bypassDD=false) {
             <div class="aDiv">${thisQ.answer}</div>
             <div class="qDiv hidden">${thisQ.question}</div>
             <div class="qControls">
-                <button onclick='closeQDD("${boardID}")'>Go Back</button>
+                <button onclick='closeQDD()'>Go Back</button>
                 <button onclick='this.parentElement.parentElement.getElementsByClassName("qDiv")[0].classList.remove("hidden")'>Show Answer</button>
             </div>
         `;
@@ -102,9 +103,8 @@ function showQuestion(boardID, x, y, bypassDD=false) {
     }
 }
 
-function closeQDD(boardID) {
-    boardID = boardID.toString().replace("board", "");
-    const qdd = document.getElementById("board"+boardID).parentElement.querySelectorAll(`#dd${boardID},#question${boardID}`);
+function closeQDD() {
+    const qdd = document.getElementById("tableContainer").querySelectorAll(`#dd,#question`);
     qdd.forEach(open => {
         if (!open.classList.contains("hidden")) {
             open.classList.add("hidden");
@@ -113,7 +113,7 @@ function closeQDD(boardID) {
 }
 
 function addUser(boardID) {
-    let uNameText = document.getElementById("newUserText" + boardID);
+    let uNameText = document.getElementById("newUserText");
     let newUName = uNameText.value;
     if (!newUName || !newUName.length) return alert("Empty name field!");
     newUName = newUName.toProperCase();
@@ -131,32 +131,31 @@ function addUser(boardID) {
 
 function loadUsers() {
     // Grab the div that shows the users
-    const userDivs = document.querySelectorAll("div.users");
+    const userDiv = document.getElementById("users");
     
     // Wipe the div out so we can reset it
-    for ([index, userDiv] of userDivs.entries()) {
-        userDiv.innerHTML = "";
+    userDiv.innerHTML = "";
 
-        // Add in each user
-        Object.keys(users).forEach((userName, ix) => {
-            const score = users[userName].score;
-            const userID = "user" + ix;
-            const div = document.createElement("div");
-            div.className = "user " + userID;
-            div.innerHTML = 
-            `<div class="uName">${userName.toProperCase()}</div>
-                <div class="uScore">${score}</div>
-                <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', 1, ${index})">+</a>
-                <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', -1, ${index})">-</a>`;
-            userDiv.appendChild(div);
-        });
-    }
+    // Add in each user
+    Object.keys(users).forEach((userName, ix) => {
+        const score = users[userName].score;
+        const userID = "user" + ix;
+        const div = document.createElement("div");
+        div.className = "user";
+        div.id        = userID;
+        div.innerHTML = 
+           `<div class="uName">${userName.toProperCase()}</div>
+            <div class="uScore">${score}</div>
+            <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', 1)">+</a>
+            <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', -1)">-</a>`;
+        userDiv.appendChild(div);
+    });
 }
 
-function crementUser(uID, dir, boardID=null) {
-    const userDivs = document.querySelectorAll("div.users");
-    const userName  = userDivs[0].querySelector(`.${uID} .uName`).innerText;
-    const customAmountArea = document.getElementById("customAmountText"+boardID);
+function crementUser(uID, dir) {
+    const userDiv = document.getElementById("users");
+    const userName  = userDiv.querySelector(`#${uID} .uName`).innerText;
+    const customAmountArea = document.getElementById("customAmountText");
     const customAmount = customAmountArea && customAmountArea.value ? parseInt(customAmountArea.value) : null;
     
     let score;
@@ -174,32 +173,42 @@ function crementUser(uID, dir, boardID=null) {
         log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by ${selectedValue} from ${currentCat}`);
     }
     
-    // Change the score for both boards
-    for (userDiv of userDivs) {        
-        const userScore = userDiv.querySelector(`.${uID} .uScore`);
-        userScore.innerText = score.toString()
-    }
+    // Change the score
+    const userScore = userDiv.querySelector(`#${uID} .uScore`);
+    userScore.innerText = score.toString()
 }
 
 function clearBoard(num) {
     if (confirm("Are you sure you want to clear all selected tiles?")) {
-        const allSelected = document.querySelectorAll(`#board${num} .visited,#board${num} .selected`);
+        const currentBoard = document.querySelector("#tableContainer table:not(.hidden)");
+        const allSelected = currentBoard.querySelectorAll(".visited,.selected");
         allSelected.forEach(selected => {
             selected.classList.remove("visited");
             selected.classList.remove("selected");
         });
-        log.push("Board has been cleared");
+        selectedValue = 0;
+        log.push("Board has been cleared"); 
     }
+}
+
+function swapBoard() {
+    const hiddenBoard = document.querySelector("#tableContainer table.hidden");
+    const currentBoard = document.querySelector("#tableContainer table:not(.hidden)");
+    
+    const currentID = currentBoard.id.replace("board", "");
+    const swapButton = document.getElementById("boardSwapButton");
+    swapButton.innerText = "Show Board " + currentID;
+    
+    hiddenBoard.classList.toggle("hidden");
+    currentBoard.classList.toggle("hidden");
 }
 
 function resetScores() {
     if (confirm("Are you sure you want to clear all players' scores?")) {
-        const userDivs = document.querySelectorAll("div.users");
-        userDivs.forEach(userDiv => {
-            const scores = userDiv.querySelectorAll(".uScore");
-            scores.forEach(score => {
-                score.innerText = "0";
-            });
+        const userDiv = document.getElementById("users");
+        const scores = userDiv.querySelectorAll(".uScore");
+        scores.forEach(score => {
+            score.innerText = "0";
         });
         Object.keys(users).forEach(user => {
             users[user].score = 0;
@@ -208,21 +217,19 @@ function resetScores() {
     }
 }
 
-function showHistory(num) {
+function showHistory() {
     // Fill in the list to be shown
-    const historyTA = document.getElementById("history"+num);
+    const historyTA = document.getElementById("historyTA");
     historyTA.innerHTML = log.join("\n");            
 
     // Show the list (Or hide it if it's up)
-    const histDiv = document.querySelector("#board"+num).parentElement.querySelector(".history");
+    const histDiv = document.getElementById("tableContainer").querySelector("#history");
     if (histDiv.classList.contains("hidden")) {
         histDiv.classList.remove("hidden");
         historyTA.scrollTop = historyTA.scrollHeight;
-        document.getElementById("histButton" + num).innerText = "Hide History";
+        document.getElementById("histButton").innerText = "Hide History";
     } else {
         histDiv.classList.add("hidden");
-        document.getElementById("histButton" + num).innerText = "Show History";
+        document.getElementById("histButton").innerText = "Show History";
     }
 }
-
-

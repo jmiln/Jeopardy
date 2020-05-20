@@ -1,5 +1,13 @@
 # Changelog
 
+## May 19, 2020 Update 2
+
+Changed it to have just one board display, with a button to swap between boards.
+
+- Adjusted how it displays the current selected cell to an inner border, rather than an outer one that only shows on some of the edges, and took away the text highlighting for it
+- Removed the duplicate scoreboards, bottom controls, and board so it's easier on the backend and looks nicer. The two boards display in the same space now, and just toggle which shows.
+- Changed it to no longer show the headers as clickable
+
 ## May 19, 2020 Update 1
 
 Added in questions and split up the bits into files

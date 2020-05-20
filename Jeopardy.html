@@ -10,176 +10,133 @@
 <body onload="loadBoard()">
     <div class="mainContainer">
         <div class="scoreContainer">
-            <div class="users">
+            <div id="users">
                 <!-- This will house the users' name and scores -->
             </div>
             <div class="bottom">
                 <!-- This will house the management buttons -->
                 <div>
                     <div>
-                        <input id="newUserText1" type="text" placeholder="User Name" />
-                        <button id="newUserButton1" onclick="addUser(1)">Add User</button>
+                        <input id="newUserText" type="text" placeholder="User Name" />
+                        <button id="newUserButton" onclick="addUser()">Add User</button>
                     </div>
                     <div>
-                        <input id="customAmountText0" type="text" placeholder="Amount" />
+                        <input id="customAmountText" type="text" placeholder="Amount" />
                     </div>
                 </div>
             </div>
         </div>
-        <div class="boardContainer">
-            <div class="tableContainer">
+        <div id="boardContainer">
+            <div id="tableContainer">
                 <table id="board1">
                     <thead>
-                        <td>Cat1</td>
-                        <td>Cat2</td>
-                        <td>Cat3</td>
-                        <td>Cat4</td>
-                        <td>Cat5</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>$100</td>
-                            <td>$100</td>
-                            <td>$100</td>
-                            <td>$100</td>
-                            <td>$100</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$200</td>
-                            <td>$200</td>
-                            <td>$200</td>
-                            <td>$200</td>
-                            <td>$200</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$300</td>
-                            <td>$300</td>
-                            <td>$300</td>
-                            <td>$300</td>
-                            <td>$300</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$400</td>
-                            <td>$400</td>
-                            <td>$400</td>
-                            <td>$400</td>
-                            <td>$400</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$500</td>
-                            <td>$500</td>
-                            <td>$500</td>
-                            <td>$500</td>
-                            <td>$500</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </table>
-
-                <div id="dd1" class="question hidden">
-                    <!-- This will show if you get a daily double -->
-                </div>
-                <div id="question1" class="question hidden">
-                    <!-- This will be populated by the question/ answer & control buttons -->
-                </div>
-                <div class="history hidden">
-                    <textarea id="history1">
-                        <!-- This will be populated when the history button is clicked -->
-                    </textarea>
-                </div>
-
-                <div class="controls">
-                    <button onclick="clearBoard(1)">Reset Board</button>
-                    <button onclick="resetScores()">Reset Scores</button>
-                    <button id="histButton1" style="width: 95px;" onclick="showHistory(1)">Show History</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mainContainer">
-        <div class="scoreContainer">
-            <div class="users">
-                <!-- This will house the users' name and scores -->
-            </div>
-            <div class="bottom">
-                <!-- This will house the management buttons -->
-                <div>
-                    <div>
-                        <input id="newUserText2" type="text" placeholder="User Name" />
-                        <button id="newUserButton2" onclick="addUser(2)">Add User</button>
-                    </div>
-                    <div>
-                        <input id="customAmountText1" type="text" placeholder="Custom Amount" />
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="boardContainer">
-            <div class="tableContainer">
-                <table id="board2">
+                <table id="board2" class="hidden">
                     <thead>
-                        <td>Cat1</td>
-                        <td>Cat2</td>
-                        <td>Cat3</td>
-                        <td>Cat4</td>
-                        <td>Cat5</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>$200</td>
-                            <td>$200</td>
-                            <td>$200</td>
-                            <td>$200</td>
-                            <td>$200</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$400</td>
-                            <td>$400</td>
-                            <td>$400</td>
-                            <td>$400</td>
-                            <td>$400</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$600</td>
-                            <td>$600</td>
-                            <td>$600</td>
-                            <td>$600</td>
-                            <td>$600</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$800</td>
-                            <td>$800</td>
-                            <td>$800</td>
-                            <td>$800</td>
-                            <td>$800</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>$1000</td>
-                            <td>$1000</td>
-                            <td>$1000</td>
-                            <td>$1000</td>
-                            <td>$1000</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </table>
-
-                <!-- TODO Make this work -->
-                <div id="dd2" class="question hidden">
+                <div id="dd" class="question hidden">
                     <!-- This will show if you get a daily double -->
                 </div>
-                <div id="question2" class="question hidden">
+                <div id="question" class="question hidden">
                     <!-- This will be populated by the question/ answer & control buttons -->
                 </div>
-                <div class="history hidden">
-                    <textarea id="history2">
+                <div id="history" class="hidden">
+                    <textarea id="historyTA">
                         <!-- This will be populated when the history button is clicked -->
                     </textarea>
                 </div>
-
-                <div class="controls">
-                    <button onclick="clearBoard(2)">Reset Board</button>
+    
+                <div id="controls">
+                    <button onclick="clearBoard()">Reset Board</button>
                     <button onclick="resetScores()">Reset Scores</button>
-                    <button id="histButton2" style="width: 95px;" onclick="showHistory(2)">Show History</button>
+                    <button id="histButton" style="width: 95px;" onclick="showHistory()">Show History</button>
+                    <button id="boardSwapButton" onclick="swapBoard()">Show Board 2</button>
                 </div>
             </div>
         </div>
