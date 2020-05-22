@@ -1,5 +1,10 @@
 # Changelog
 
+## May 21. 2020 Update 1
+
+Changed it do auto-set the daily doubles when the page is loaded, and removed those fields from the
+src/questions.js file
+
 ## May 19, 2020 Update 2
 
 Changed it to have just one board display, with a button to swap between boards.

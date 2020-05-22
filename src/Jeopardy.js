@@ -15,6 +15,8 @@ let boardWidth, boardHeight;
 function loadBoard() {
     // Set each catagory header for both boards
     for (board of ["board1", "board2"]) {
+        setDailyDoubles(board);
+
         const boardContents = questions[board];
         const catHeaders = document.querySelectorAll(`#${board} thead td`);
         
@@ -60,6 +62,33 @@ function loadBoard() {
 
     // Load the questions in from a JSON file? Or just load it from the object above?
     loadUsers();
+}
+
+function setDailyDoubles(boardID) {
+    const boardContents = questions[boardID];
+    const ddNum = parseInt(boardID.replace("board", ""));
+    let prevCat;
+    // Set daily double locations, one in the first board, 2 in the second.
+    // Bottom 3 rows only, and max of 1 per category 
+    let targetCat = Math.floor(Math.random() * 5); // Picks one out of the 5 categories
+    let targetRow = Math.floor(Math.random() * 3) + 2;  // Picks one of the available cells
+    
+    let thisCat = boardContents[Object.keys(boardContents)[targetCat]];
+    let thisRow = thisCat[Object.keys(thisCat)[targetRow]];
+    thisRow.dailyDouble = true;
+    console.log(`${boardID} DD set at (${targetCat}, ${targetRow})`);
+
+    if (ddNum === 2) {
+        prevCat = targetCat;
+        while (targetCat === prevCat) {
+            targetCat = Math.floor(Math.random() * 5);
+        }
+        targetRow = Math.floor(Math.random() * 3) + 2;
+        thisCat = boardContents[Object.keys(boardContents)[targetCat]];
+        thisRow = thisCat[Object.keys(thisCat)[targetRow]];
+        thisRow.dailyDouble = true;
+        console.log(`${boardID} DD set at (${targetCat}, ${targetRow})`);
+    }
 }
 
 function showQuestion(boardID, x, y, bypassDD=false) {
