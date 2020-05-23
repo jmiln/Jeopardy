@@ -49,27 +49,23 @@ body {
     max-width: 150px;
     overflow: wrap;
     font-weight: bold;
+    color: white;
 }
 
 #tableContainer td {
     max-width: 150px;
     padding: 10px;
     border: var(--border);
-    color: var(--yellow);
     text-shadow: var(--shadow);
 }
 #tableContainer tbody td {
     cursor: pointer;
+    color: var(--yellow);
 }
 
 #tableContainer tbody td.visited {
-    color: black;
+    color: var(--blue);
     text-shadow: none;
-    font-weight: 600;
-}
-
-#tableContainer tbody td.visited {
-    background-color: lightgray;
 }
 
 #tableContainer tbody td.selected {
@@ -97,7 +93,7 @@ body {
     width: 300px;
     position: relative;
     background-color: var(--blue);
-    color: var(--yellow);
+    color: white;
     text-shadow: var(--shadow);
     padding: 10px;
     border: var(--border);

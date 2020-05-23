@@ -11,3 +11,4 @@ Base template for keeping score of a Jeopardy game
     * You can change the category names and amounts, and it will show up on the board
     * If you change the question names, it doesn't change anything at this time
   * It now has the two boards showing at the same spot, and you can swap between with the button below
+* The page will set Double Jeopardy spots, 1 in the first board, and 2 in the second (Row 3-5 only)

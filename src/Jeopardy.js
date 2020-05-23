@@ -1,16 +1,16 @@
 const users = {};
 const log = [];
 const totalColumns = 5;
+let selectedValue = 0;
+let currentCat = "";
+let boardWidth, boardHeight;
+
 // Capitalizes the first letter of each word
 String.prototype.toProperCase = function() {
     return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
 };
-
-let selectedValue = 0;
-let currentCat = "";
-let boardWidth, boardHeight;
 
 function loadBoard() {
     // Set each catagory header for both boards
@@ -55,8 +55,7 @@ function loadBoard() {
         });
     }
 
-    // This *should* get the size of the table so I can overlay it later?
-    // Seems to work even though it throws an error...
+    // Get the size of the table so I can overlay it later?
     boardHeight = document.getElementById("board1").offsetHeight;
     boardWidth  = document.getElementById("board1").offsetWidth;
 
@@ -76,7 +75,6 @@ function setDailyDoubles(boardID) {
     let thisCat = boardContents[Object.keys(boardContents)[targetCat]];
     let thisRow = thisCat[Object.keys(thisCat)[targetRow]];
     thisRow.dailyDouble = true;
-    console.log(`${boardID} DD set at (${targetCat}, ${targetRow})`);
 
     if (ddNum === 2) {
         prevCat = targetCat;
@@ -87,7 +85,6 @@ function setDailyDoubles(boardID) {
         thisCat = boardContents[Object.keys(boardContents)[targetCat]];
         thisRow = thisCat[Object.keys(thisCat)[targetRow]];
         thisRow.dailyDouble = true;
-        console.log(`${boardID} DD set at (${targetCat}, ${targetRow})`);
     }
 }
 
