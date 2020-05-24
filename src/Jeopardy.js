@@ -5,6 +5,8 @@ let selectedValue = 0;
 let currentCat = "";
 let boardWidth, boardHeight;
 
+const audioVolume = 0.2;
+
 // Capitalizes the first letter of each word
 String.prototype.toProperCase = function() {
     return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
@@ -19,7 +21,6 @@ function loadBoard() {
 
         const boardContents = questions[board];
         const catHeaders = document.querySelectorAll(`#${board} thead td`);
-        
         Object.keys(questions[board]).forEach((cat, ix) => {
             catHeaders[ix].innerText = cat;
         });
@@ -75,6 +76,7 @@ function setDailyDoubles(boardID) {
     let thisCat = boardContents[Object.keys(boardContents)[targetCat]];
     let thisRow = thisCat[Object.keys(thisCat)[targetRow]];
     thisRow.dailyDouble = true;
+    console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
 
     if (ddNum === 2) {
         prevCat = targetCat;
@@ -85,22 +87,25 @@ function setDailyDoubles(boardID) {
         thisCat = boardContents[Object.keys(boardContents)[targetCat]];
         thisRow = thisCat[Object.keys(thisCat)[targetRow]];
         thisRow.dailyDouble = true;
+        console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
     }
 }
 
 function showQuestion(boardID, x, y, bypassDD=false) {
     // Fill in the list to be shown
     const questionDiv = document.getElementById("question");
+    const ddDiv = document.getElementById("dd");
+
     const boardContents = questions[boardID];
     const thisCat = boardContents[Object.keys(boardContents)[x]];
     const thisQ   = thisCat[Object.keys(thisCat)[y]];
-    const ddDiv = document.getElementById("dd");
 
     if (thisQ.dailyDouble && ddDiv.classList.contains("hidden")) {
         // This needs to pop up a different screen before you get to the actual q/a
         const ddDiv = document.getElementById("dd");
         ddDiv.innerHTML = `
             <div class="qDailyDouble">Daily Double!</div>
+            <audio src="src/audio/DailyDouble.mp3" autoplay></audio>
             <div class="qControls">
                 <button onclick='closeQDD()'>Go Back</button>
                 <button onclick='showQuestion("${boardID}", ${x}, ${y}, true)'>Continue</button>
@@ -111,13 +116,12 @@ function showQuestion(boardID, x, y, bypassDD=false) {
         ddDiv.classList.remove("hidden");
     } else if (questionDiv.classList.contains("hidden")) {
         // Fill out the question Div
-        questionDiv.innerHTML = "";
         questionDiv.innerHTML = `
-            <div class="aDiv">${thisQ.answer}</div>
-            <div class="qDiv hidden">${thisQ.question}</div>
+            <div id="aDiv">${thisQ.answer}</div>
+            <div id="qDiv" class="hidden">${thisQ.question}</div>
             <div class="qControls">
                 <button onclick='closeQDD()'>Go Back</button>
-                <button onclick='this.parentElement.parentElement.getElementsByClassName("qDiv")[0].classList.remove("hidden")'>Show Answer</button>
+                <button id="answerButton" onclick='toggleQA()'>Show Question</button>
             </div>
         `;
 
@@ -127,10 +131,40 @@ function showQuestion(boardID, x, y, bypassDD=false) {
         // Should never be an else since it should pop up above the board, and will have a button there
         console.log("Missed all")
     }
+    
+    // In case there is an audio track to play
+    const audioList = document.getElementsByTagName("audio");
+    if (audioList.length) {
+        for (audio of audioList) {
+            audio.volume = .2
+        }
+    }
+}
+
+function toggleQA() {
+    const qaDiv = document.getElementById("question");
+    const aDiv = qaDiv.querySelector("#aDiv");
+    const qDiv = qaDiv.querySelector("#qDiv");
+
+    qaDiv.querySelector("#answerButton").innerText = qDiv.classList.contains("hidden") ? "Show Answer" : "Show Question";
+
+    aDiv.classList.toggle("hidden");
+    qDiv.classList.toggle("hidden");
 }
 
 function closeQDD() {
     const qdd = document.getElementById("tableContainer").querySelectorAll(`#dd,#question`);
+    const audioTracks = document.getElementsByTagName("audio");
+    const videoTracks = document.getElementsByTagName("video");
+
+    for (vid of videoTracks) {
+        vid.pause();
+    }
+
+    for (av of audioTracks) {
+        av.pause();
+    }
+
     qdd.forEach(open => {
         if (!open.classList.contains("hidden")) {
             open.classList.add("hidden");
@@ -145,7 +179,7 @@ function addUser(boardID) {
     newUName = newUName.toProperCase();
     
     if (users[newUName]) {
-        alert("This user already exists");
+        return alert("This user already exists");
     } else {
         users[newUName] = {
             score: 0
