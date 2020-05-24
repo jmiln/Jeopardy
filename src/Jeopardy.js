@@ -4,6 +4,7 @@ const totalColumns = 5;
 let selectedValue = 0;
 let currentCat = "";
 let boardWidth, boardHeight;
+const debug = true;
 
 const audioVolume = 0.2;
 
@@ -76,7 +77,7 @@ function setDailyDoubles(boardID) {
     let thisCat = boardContents[Object.keys(boardContents)[targetCat]];
     let thisRow = thisCat[Object.keys(thisCat)[targetRow]];
     thisRow.dailyDouble = true;
-    console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
+    if (debug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
 
     if (ddNum === 2) {
         prevCat = targetCat;
@@ -87,7 +88,7 @@ function setDailyDoubles(boardID) {
         thisCat = boardContents[Object.keys(boardContents)[targetCat]];
         thisRow = thisCat[Object.keys(thisCat)[targetRow]];
         thisRow.dailyDouble = true;
-        console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
+        if (debug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
     }
 }
 

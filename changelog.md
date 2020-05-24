@@ -1,9 +1,15 @@
 # Changelog
 
+## May 24, 2020 Update 1
+
+- Added the sound for Daily double and got it to play when clicked on
+- Added some stuff to support adding audio files into questions
+- Added a favicon icon so the console would shut up about it missing
+- Changed q/a so they don't show up at the same time when show question is clicked
+
 ## May 21. 2020 Update 1
 
-Changed it do auto-set the daily doubles when the page is loaded, and removed those fields from the
-src/questions.js file
+Changed it do auto-set the daily doubles when the page is loaded, and removed those fields from the src/questions.js file
 
 ## May 19, 2020 Update 2
 
