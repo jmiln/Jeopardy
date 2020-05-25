@@ -215,4 +215,15 @@ body {
 .question .qDailyDouble {
     font-size: 144px;
     font-weight: bolder;
+    animation: scale01 .8s
 }
+
+
+@keyframes scale01 {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }

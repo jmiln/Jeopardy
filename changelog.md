@@ -6,6 +6,7 @@
 - Added some stuff to support adding audio files into questions
 - Added a favicon icon so the console would shut up about it missing
 - Changed q/a so they don't show up at the same time when show question is clicked
+- Added an animation to go along with the sound for a daily double
 
 ## May 21. 2020 Update 1
 
