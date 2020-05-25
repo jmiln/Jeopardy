@@ -25,6 +25,9 @@ function loadBoard() {
         Object.keys(questions[board]).forEach((cat, ix) => {
             catHeaders[ix].innerText = cat;
         });
+        for (header of catHeaders) {
+            header.style.fontSize = getFontSize(header.textContent.length)
+        }
 
         const boardCells = document.querySelectorAll(`#${board} tbody td`);
         boardCells.forEach((thisCell, ix) => {
@@ -58,11 +61,48 @@ function loadBoard() {
     }
 
     // Get the size of the table so I can overlay it later?
-    boardHeight = document.getElementById("board1").offsetHeight;
-    boardWidth  = document.getElementById("board1").offsetWidth;
+    sizeBoards();
 
     // Load the questions in from a JSON file? Or just load it from the object above?
     loadUsers();
+}
+
+function sizeBoards() {
+    const boardHeight1 = document.getElementById("board1").offsetHeight;
+    const boardWidth1  = document.getElementById("board1").offsetWidth;
+    const boardHeight2 = document.getElementById("board2").offsetHeight;
+    const boardWidth2  = document.getElementById("board2").offsetWidth;
+
+    boardWidth = boardWidth1 > boardWidth2 ? boardWidth1 : boardWidth2;
+    boardHeight = boardHeight1 > boardHeight2 ? boardHeight1 : boardHeight2;
+
+    const boards = document.querySelectorAll("#tableContainer table");
+    for (b of boards) {
+        b.style.width = boardWidth + "px";
+        b.style.height = boardHeight + "px";
+    }
+
+    const qDivs = document.getElementsByClassName("question");
+    for (qDiv of qDivs) {
+        qDiv.style.width = (boardWidth - 8) + "px";
+        qDiv.style.height = (boardHeight - 8) + "px";
+    }
+
+    const histDiv = document.getElementById("history");
+    histDiv.style.width = boardWidth + "px";
+    histDiv.style.height = boardHeight + "px";
+    const histArea = document.querySelector("#history textArea");
+    histArea.style.height = (boardHeight - 28) + "px";
+    histArea.style.width = (boardWidth - 28) + "px";
+}
+
+function getFontSize(textLength) {
+    const baseSize = 36;
+    if (textLength >= 15) {
+        const size = baseSize - textLength;
+      return `${size > 20 ? size : 20}px`
+    }
+    return `${baseSize}px`
 }
 
 function setDailyDoubles(boardID) {

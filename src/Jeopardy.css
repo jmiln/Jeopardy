@@ -47,9 +47,7 @@ body {
 }
 
 #tableContainer thead {
-    max-width: 150px;
     overflow: wrap;
-    font-weight: bold;
     color: white;
 }
 
@@ -171,8 +169,6 @@ body {
 }
 
 #history textarea {
-    width: 672px;
-    height: 372px;
     font-size: 18px;
     font-weight: bold;
     padding: 10px;
@@ -186,9 +182,7 @@ body {
     position: absolute;
     top: 0px;
     z-index: 11;
-    background-color: var(--blue);
-    width: 692px;
-    height: 392px;
+    background-color: var(--blue);  
     text-align: center;
     color: white;
     font-size: 32px;

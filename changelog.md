@@ -1,5 +1,10 @@
 # Changelog
 
+## May 24, 2020 Update 2
+
+- Got the catagory headers to resize the text based on how many characters there are
+- Changed some things around so the board, q/a, and double jeopardy panes are all sized based off of the larger of the two boards, in case of header sizes or something making it taller
+
 ## May 24, 2020 Update 1
 
 - Added the sound for Daily double and got it to play when clicked on
