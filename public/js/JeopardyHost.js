@@ -1,3 +1,5 @@
+const socket = io()
+
 const users = {};
 const log = [];
 const totalColumns = 5;
@@ -213,29 +215,17 @@ function closeQDD() {
     });
 }
 
-function addUser(boardID) {
-    let uNameText = document.getElementById("newUserText");
-    let newUName = uNameText.value;
-    if (!newUName || !newUName.length) return alert("Empty name field!");
-    newUName = newUName.toProperCase();
-    
-    if (users[newUName]) {
-        return alert("This user already exists");
-    } else {
-        users[newUName] = {
-            score: 0
-        };                    
-        uNameText.value = "";
-        loadUsers();
-    }
-}
-
-function loadUsers() {
+function loadUsers(users) {
     // Grab the div that shows the users
     const userDiv = document.getElementById("users");
     
     // Wipe the div out so we can reset it
     userDiv.innerHTML = "";
+
+    if (!users) {
+        // just in case
+        return;
+    }
 
     // Add in each user
     Object.keys(users).forEach((userName, ix) => {
@@ -259,24 +249,25 @@ function crementUser(uID, dir) {
     const customAmountArea = document.getElementById("customAmountText");
     const customAmount = customAmountArea && customAmountArea.value ? parseInt(customAmountArea.value) : null;
     
+    const userScore = parseInt(userDiv.querySelector(`#${uID} .uScore`).innerText);
+    
     let score;
     if (customAmount && customAmount > 0) {
         // Up it by the custom set amount
-        score = users[userName].score + (customAmount * dir);
-        users[userName].score = score;
-        
+        score = userScore + (customAmount * dir);
+
         // Then wipe out the textArea
         customAmountArea.value = "";
         log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by a custom amount: ${customAmount}`);
     } else {
-        score = users[userName].score + (selectedValue * dir);
-        users[userName].score = score;
+        score = userScore + (selectedValue * dir);
         log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by ${selectedValue} from ${currentCat}`);
     }
     
     // Change the score
-    const userScore = userDiv.querySelector(`#${uID} .uScore`);
-    userScore.innerText = score.toString()
+    const newScore = score;
+    userScore.innerText = newScore;
+    socket.emit("hostScoreUpdate", {name: userName, score: newScore});
 }
 
 function clearBoard(num) {
@@ -334,3 +325,11 @@ function showHistory() {
         document.getElementById("histButton").innerText = "Show History";
     }
 }
+
+socket.on("updateUsers", users => {
+    loadUsers(users);
+});
+
+socket.on("userBuzz", user => {
+    // Find the user in the score div and toggle a class on em (Class style TBD)
+});

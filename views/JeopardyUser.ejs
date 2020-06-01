@@ -1,0 +1,29 @@
+<html lang="en">
+
+<head>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link type="text/css" href="/css/Jeopardy.css" rel="stylesheet">
+    <link type="text/css" href="/css/JeopardyUser.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="reg">
+        <!-- User chooses a name here (Maybe chooses game to connect to in the future?) -->
+        <form action="">
+            <input type='text' name='name' placeholder='Your name' required='required'/><br>
+            <button type='submit'>Join!</button>
+        </form>
+    </div>
+    <div id="buzzer" class="hidden">
+        <!-- The screen with the buzzer, score, and name -->
+        <button id="buzzerBtn">Buzz In!</button>
+        <div id="uName">User Name Here</div>
+        <div id="uScore">Score: $1500</div>
+    </div>
+
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/js/JeopardyUser.js"></script>
+</body>
+
+</html>
