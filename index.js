@@ -26,7 +26,7 @@ io.on("connection", socket => {
     socket.on("join", user => {
         // Add new users to the list as they join in
         console.log(user + " Joined");
-        users[user] ? null : users[user] = {name: user, score: 0});
+        users[user] ? null : users[user] = {name: user, score: 0};
     });
 
     socket.on("buzz", user => {
