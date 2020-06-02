@@ -235,10 +235,11 @@ function loadUsers(users) {
         div.className = "user";
         div.id        = userID;
         div.innerHTML =
-           `<div class="uName">${user.name.toProperCase()}</div>
+           `<div class="uName ${user.buzzed ? "buzzed" : ""}">${user.name.toProperCase()}</div>
             <div class="uScore">${score}</div>
             <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', 1)">+</a>
-            <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', -1)">-</a>`;
+            <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', -1)">-</a>
+            <div class="buzzer ${user.buzzed ? "buzzed" : ""}"></div> `;
         userDiv.appendChild(div);
     });
 }
@@ -291,16 +292,13 @@ function swapBoard() {
     currentBoard.classList.toggle("hidden");
 }
 
+function clearBuzzes() {
+    console.log("Clearing Buzzes");
+    socket.emit("clearBuzzes");
+}
+
 function resetScores() {
     if (confirm("Are you sure you want to clear all players' scores?")) {
-        // const userDiv = document.getElementById("users");
-        // const scores = userDiv.querySelectorAll(".uScore");
-        // scores.forEach(score => {
-        //     score.innerText = "0";
-        // });
-        // Object.keys(users).forEach(user => {
-        //     users[user].score = 0;
-        // });
         socket.emit("clearScores");
         log.push("Scores have been reset");
     }
@@ -327,9 +325,4 @@ socket.on("updateUsers", users => {
     console.log("Socket reloading users");
     currentUsers = users;
     loadUsers(users);
-});
-
-socket.on("userBuzz", user => {
-    // Find the user in the score div and toggle a class on em (Class style TBD)
-    console.log(user + " buzzed in!");
 });

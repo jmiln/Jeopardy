@@ -28,8 +28,8 @@ io.on("connection", socket => {
         // Add new users to the list as they join in
         if (!users.filter(a => a.name === user.name.toUpperCase()).length) {
             users.push({
-                score: 0, 
-                name: user.name.toUpperCase(), 
+                score: 0,
+                name: user.name.toUpperCase(),
                 buzzed: false
             });
         }
@@ -37,7 +37,7 @@ io.on("connection", socket => {
         io.emit("updateUsers", users);
     });
 
-    socket.on("clearBuzz", () => {
+    socket.on("clearBuzzes", () => {
         console.log("Clearing Buzzes");
         for (user of users) {
             user.buzzed = false;
@@ -51,13 +51,15 @@ io.on("connection", socket => {
             user.score = 0;
         }
         io.emit("updateUsers", users);
-    })
+    });
 
     socket.on("buzz", user => {
         // Highlight the user when they  buzz in
         console.log(user.name+ " buzzed in");
         if (!users.filter(a => a.buzzed).length) {
-            io.emit("userBuzz", user);
+            const u = users.find(u => u.name === user.name);
+            u.buzzed = true;
+            io.emit("updateUsers", users);
         }
     });
 

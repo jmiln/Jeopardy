@@ -144,6 +144,24 @@ body {
     margin-left: 5px;
     height: 25px;
 }
+.buzzer {
+    width: 1px;
+    height: 1px;
+    border-top: 0;
+    border-bottom: 0;
+    border-right: 0;
+}
+.uName.buzzed {
+    background-color: var(--yellow);
+    text-shadow: none;
+    font-weight: bold;
+    color: black;
+}
+.buzzer.buzzed {
+    border-top: 15px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-right: 20px solid red;
+}
 
 #history {
     position: absolute;
@@ -168,12 +186,12 @@ body {
     position: absolute;
     top: 0px;
     z-index: 11;
-    background-color: var(--blue);  
+    background-color: var(--blue);
     text-align: center;
     color: white;
     font-size: 32px;
     margin: 0 auto;
-    
+
     display: flex;
     justify-content: center;
     align-items: center;
