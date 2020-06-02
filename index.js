@@ -19,23 +19,46 @@ app.get("/host", (req, res) => {
 });
 
 const {inspect} = require("util");
-const users = {};
+const users = [];
 io.on("connection", socket => {
     console.log("Connection event");
 
     // Some way to show the user's current score on their side too
     socket.on("join", user => {
         // Add new users to the list as they join in
-        console.log(inspect(user) + " Joined");
-        users[user.name] ? null : users[user.name] = {score: 0, name: user.name};
-        console.log("Sending users to reload: " + inspect(users));
-        socket.emit("updateUsers", users);
+        if (!users.filter(a => a.name === user.name.toUpperCase()).length) {
+            users.push({
+                score: 0, 
+                name: user.name.toUpperCase(), 
+                buzzed: false
+            });
+        }
+        console.log(user.name + " joined!");
+        io.emit("updateUsers", users);
     });
+
+    socket.on("clearBuzz", () => {
+        console.log("Clearing Buzzes");
+        for (user of users) {
+            user.buzzed = false;
+        }
+        io.emit("updateUsers", users);
+    });
+
+    socket.on("clearScores", () => {
+        console.log("Clearing Scores");
+        for (user of users) {
+            user.score = 0;
+        }
+        io.emit("updateUsers", users);
+    })
 
     socket.on("buzz", user => {
         // Highlight the user when they  buzz in
         console.log(user.name+ " buzzed in");
-        socket.emit("userBuzz", user);
+        if (!users.filter(a => a.buzzed).length) {
+            io.emit("userBuzz", user);
+        }
     });
 
     socket.on("disconnect", user => {
@@ -46,16 +69,25 @@ io.on("connection", socket => {
     socket.on("hostLoad", () => {
         console.log("Host joined");
         // Send out any current users
-        socket.emit("scoreUpdate", users);
+        io.emit("scoreUpdate", users);
+        io.emit("updateUsers", users);
     });
-    socket.on("hostScoreUpdate", (data) => {
+    socket.on("hostScoreUpdate", (userName, amount) => {
         // Update the user's scores
-        console.log("Updating score");
-        console.log(data);
-
+        updateScore(userName.toUpperCase(), amount);
         // Send out the new scores to the users
-        socket.emit("scoreUpdate", users);
+        io.emit("updateUsers", users);
     });
 });
+
+function updateScore(userName, amount) {
+    console.log("Updating scores: " + userName + ", " + amount);
+    const user = users.find(u => u.name === userName);
+    if (!user) {
+        console.log("Something broke, I could not find the user to update");
+    } else {
+        user.score += parseInt(amount);
+    }
+}
 
 server.listen(PORT, () => console.log("Listening on " + PORT));

@@ -46,10 +46,6 @@ input[type="text"]:active {
 }
 
 
-
-
-
-
 #buzzerBtn {
     background-color: red;
     color: white;
@@ -74,8 +70,9 @@ input[type="text"]:active {
     }
 }
 
-#buzzer div {
+div#buzzer {
     font-size: 5vh;
+    text-align: center;
     font-weight: bolder;
     margin-bottom: 10px;
 }

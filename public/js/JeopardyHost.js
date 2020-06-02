@@ -1,13 +1,12 @@
 const socket = io()
 
-const users = {};
 const log = [];
 const totalColumns = 5;
 let selectedValue = 0;
 let currentCat = "";
 let boardWidth, boardHeight;
 const debug = true;
-
+let currentUsers;
 const audioVolume = 0.2;
 
 // Capitalizes the first letter of each word
@@ -222,20 +221,21 @@ function loadUsers(users) {
     // Wipe the div out so we can reset it
     userDiv.innerHTML = "";
 
-    if (!users) {
+    if (!users || !users.length) {
         // just in case
         return;
     }
 
     // Add in each user
-    Object.keys(users).forEach((userName, ix) => {
-        const score = users[userName].score;
+    console.log(users);
+    users.sort((a, b) => a.name > b.name ? 1 : -1).forEach((user, ix) => {
+        const score = user.score;
         const userID = "user" + ix;
         const div = document.createElement("div");
         div.className = "user";
         div.id        = userID;
         div.innerHTML =
-           `<div class="uName">${userName.toProperCase()}</div>
+           `<div class="uName">${user.name.toProperCase()}</div>
             <div class="uScore">${score}</div>
             <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', 1)">+</a>
             <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', -1)">-</a>`;
@@ -249,25 +249,21 @@ function crementUser(uID, dir) {
     const customAmountArea = document.getElementById("customAmountText");
     const customAmount = customAmountArea && customAmountArea.value ? parseInt(customAmountArea.value) : null;
 
-    const userScore = parseInt(userDiv.querySelector(`#${uID} .uScore`).innerText);
-
-    let score;
+    let amount;
     if (customAmount && customAmount > 0) {
         // Up it by the custom set amount
-        score = userScore + (customAmount * dir);
+        amount = customAmount * dir;
 
         // Then wipe out the textArea
         customAmountArea.value = "";
         log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by a custom amount: ${customAmount}`);
     } else {
-        score = userScore + (selectedValue * dir);
+        amount = selectedValue * dir;
         log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by ${selectedValue} from ${currentCat}`);
     }
 
     // Change the score
-    const newScore = score;
-    userScore.innerText = newScore;
-    socket.emit("hostScoreUpdate", {name: userName, score: newScore});
+    socket.emit("hostScoreUpdate", userName, amount);
 }
 
 function clearBoard(num) {
@@ -297,14 +293,15 @@ function swapBoard() {
 
 function resetScores() {
     if (confirm("Are you sure you want to clear all players' scores?")) {
-        const userDiv = document.getElementById("users");
-        const scores = userDiv.querySelectorAll(".uScore");
-        scores.forEach(score => {
-            score.innerText = "0";
-        });
-        Object.keys(users).forEach(user => {
-            users[user].score = 0;
-        });
+        // const userDiv = document.getElementById("users");
+        // const scores = userDiv.querySelectorAll(".uScore");
+        // scores.forEach(score => {
+        //     score.innerText = "0";
+        // });
+        // Object.keys(users).forEach(user => {
+        //     users[user].score = 0;
+        // });
+        socket.emit("clearScores");
         log.push("Scores have been reset");
     }
 }
@@ -328,10 +325,11 @@ function showHistory() {
 
 socket.on("updateUsers", users => {
     console.log("Socket reloading users");
+    currentUsers = users;
     loadUsers(users);
 });
 
 socket.on("userBuzz", user => {
     // Find the user in the score div and toggle a class on em (Class style TBD)
-    console.log(user.name + " buzzed in!");
+    console.log(user + " buzzed in!");
 });
