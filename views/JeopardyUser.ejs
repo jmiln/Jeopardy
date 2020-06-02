@@ -6,7 +6,7 @@
     <link type="text/css" href="/css/JeopardyUser.css" rel="stylesheet">
 </head>
 
-<body>
+<body onload="loadFunc()">
     <div id="reg">
         <!-- User chooses a name here (Maybe chooses game to connect to in the future?) -->
         <form action="">
@@ -21,7 +21,7 @@
         <div id="uScore">Score: $1500</div>
     </div>
 
-    
+
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/js/JeopardyUser.js"></script>
 </body>

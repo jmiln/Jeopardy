@@ -18,31 +18,40 @@ app.get("/host", (req, res) => {
     res.render("JeopardyHost");
 });
 
+const {inspect} = require("util");
 const users = {};
 io.on("connection", socket => {
-    console.log("A user connected");
+    console.log("Connection event");
 
     // Some way to show the user's current score on their side too
     socket.on("join", user => {
         // Add new users to the list as they join in
-        console.log(user + " Joined");
-        users[user] ? null : users[user] = {name: user, score: 0};
+        console.log(inspect(user) + " Joined");
+        users[user.name] ? null : users[user.name] = {score: 0, name: user.name};
+        console.log("Sending users to reload: " + inspect(users));
+        socket.emit("updateUsers", users);
     });
 
     socket.on("buzz", user => {
         // Highlight the user when they  buzz in
-        console.log("A user buzzed in");
+        console.log(user.name+ " buzzed in");
         socket.emit("userBuzz", user);
     });
 
     socket.on("disconnect", user => {
         // Take them out of the list and clear their points?
-        console.log("User disconnected");
+        console.log(user.name ? user.name : "Host" + " disconnected");
     });
 
+    socket.on("hostLoad", () => {
+        console.log("Host joined");
+        // Send out any current users
+        socket.emit("scoreUpdate", users);
+    });
     socket.on("hostScoreUpdate", (data) => {
         // Update the user's scores
-        users
+        console.log("Updating score");
+        console.log(data);
 
         // Send out the new scores to the users
         socket.emit("scoreUpdate", users);

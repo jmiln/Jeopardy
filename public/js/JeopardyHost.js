@@ -41,7 +41,7 @@ function loadBoard() {
 
             thisCell.onclick = function() {
                 const boardID = this.parentElement.parentElement.parentElement.id;
-                
+
                 // Set the current category
                 currentCat = thisCell.parentElement.parentElement.parentElement.querySelectorAll("thead td")[thisX].innerText;
                 selectedValue = parseInt(thisCell.innerText.replace("$", ""));
@@ -51,9 +51,9 @@ function loadBoard() {
                     allSelected[0].classList.remove('selected');
                 }
                 thisCell.classList.toggle("selected");
-                
+
                 if (!thisCell.classList.contains("visited")) {
-                    thisCell.classList.add("visited");    
+                    thisCell.classList.add("visited");
                     showQuestion(boardID, thisX, thisY);
                 } else {
                     thisCell.classList.remove("visited");
@@ -66,7 +66,7 @@ function loadBoard() {
     sizeBoards();
 
     // Load the questions in from a JSON file? Or just load it from the object above?
-    loadUsers();
+    socket.emit("hostLoad", {name: "Board Host"});
 }
 
 function sizeBoards() {
@@ -104,7 +104,7 @@ function getFontSize(textLength) {
         const size = baseSize - textLength;
       return `${size > 20 ? size : 20}px`
     }
-    return `${baseSize}px`
+    return `${baseSize}px`;
 }
 
 function setDailyDoubles(boardID) {
@@ -112,10 +112,10 @@ function setDailyDoubles(boardID) {
     const ddNum = parseInt(boardID.replace("board", ""));
     let prevCat;
     // Set daily double locations, one in the first board, 2 in the second.
-    // Bottom 3 rows only, and max of 1 per category 
+    // Bottom 3 rows only, and max of 1 per category
     let targetCat = Math.floor(Math.random() * 5); // Picks one out of the 5 categories
     let targetRow = Math.floor(Math.random() * 3) + 2;  // Picks one of the available cells
-    
+
     let thisCat = boardContents[Object.keys(boardContents)[targetCat]];
     let thisRow = thisCat[Object.keys(thisCat)[targetRow]];
     thisRow.dailyDouble = true;
@@ -172,9 +172,9 @@ function showQuestion(boardID, x, y, bypassDD=false) {
         questionDiv.classList.remove("hidden");
     } else {
         // Should never be an else since it should pop up above the board, and will have a button there
-        console.log("Missed all")
+        console.log("Missed all");
     }
-    
+
     // In case there is an audio track to play
     const audioList = document.getElementsByTagName("audio");
     if (audioList.length) {
@@ -218,7 +218,7 @@ function closeQDD() {
 function loadUsers(users) {
     // Grab the div that shows the users
     const userDiv = document.getElementById("users");
-    
+
     // Wipe the div out so we can reset it
     userDiv.innerHTML = "";
 
@@ -234,7 +234,7 @@ function loadUsers(users) {
         const div = document.createElement("div");
         div.className = "user";
         div.id        = userID;
-        div.innerHTML = 
+        div.innerHTML =
            `<div class="uName">${userName.toProperCase()}</div>
             <div class="uScore">${score}</div>
             <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', 1)">+</a>
@@ -248,9 +248,9 @@ function crementUser(uID, dir) {
     const userName  = userDiv.querySelector(`#${uID} .uName`).innerText;
     const customAmountArea = document.getElementById("customAmountText");
     const customAmount = customAmountArea && customAmountArea.value ? parseInt(customAmountArea.value) : null;
-    
+
     const userScore = parseInt(userDiv.querySelector(`#${uID} .uScore`).innerText);
-    
+
     let score;
     if (customAmount && customAmount > 0) {
         // Up it by the custom set amount
@@ -263,7 +263,7 @@ function crementUser(uID, dir) {
         score = userScore + (selectedValue * dir);
         log.push(`${userName}${userName.endsWith("s") ? "'" : "'s"} score was ${dir > 0 ? "in" : "de"}creased by ${selectedValue} from ${currentCat}`);
     }
-    
+
     // Change the score
     const newScore = score;
     userScore.innerText = newScore;
@@ -279,18 +279,18 @@ function clearBoard(num) {
             selected.classList.remove("selected");
         });
         selectedValue = 0;
-        log.push("Board has been cleared"); 
+        log.push("Board has been cleared");
     }
 }
 
 function swapBoard() {
     const hiddenBoard = document.querySelector("#tableContainer table.hidden");
     const currentBoard = document.querySelector("#tableContainer table:not(.hidden)");
-    
+
     const currentID = currentBoard.id.replace("board", "");
     const swapButton = document.getElementById("boardSwapButton");
     swapButton.innerText = "Show Board " + currentID;
-    
+
     hiddenBoard.classList.toggle("hidden");
     currentBoard.classList.toggle("hidden");
 }
@@ -312,7 +312,7 @@ function resetScores() {
 function showHistory() {
     // Fill in the list to be shown
     const historyTA = document.getElementById("historyTA");
-    historyTA.innerHTML = log.join("\n");            
+    historyTA.innerHTML = log.join("\n");
 
     // Show the list (Or hide it if it's up)
     const histDiv = document.getElementById("tableContainer").querySelector("#history");
@@ -327,9 +327,11 @@ function showHistory() {
 }
 
 socket.on("updateUsers", users => {
+    console.log("Socket reloading users");
     loadUsers(users);
 });
 
 socket.on("userBuzz", user => {
     // Find the user in the score div and toggle a class on em (Class style TBD)
+    console.log(user.name + " buzzed in!");
 });
