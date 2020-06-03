@@ -1,5 +1,13 @@
 # Changelog
 
+## June 1-2, 2020 Update
+
+- Got stuff switched over to get ready for a hosted version
+- It now uses express and socket.io to load the pages & communicate between em
+- Now includes a buzzer as then main page, and the board at /host
+- Currently no way to load questions other than if you have access to the sever
+- When a user loads in, it will put them into the scoreboard, and when they buzz, it will highlight them until you clear em
+
 ## May 24, 2020 Update 2
 
 - Got the catagory headers to resize the text based on how many characters there are
