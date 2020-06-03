@@ -7,15 +7,14 @@ const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server);
 
-app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
 
 app.get("/", (req, res) => {
-    res.render("JeopardyUser");
+    res.sendFile(__dirname + "/views/JeopardyUser.html");
 });
 
 app.get("/host", (req, res) => {
-    res.render("JeopardyHost");
+    res.sendFile(__dirname + "/views/JeopardyHost.html");
 });
 
 const {inspect} = require("util");
@@ -39,7 +38,7 @@ io.on("connection", socket => {
 
     socket.on("clearBuzzes", () => {
         console.log("Clearing Buzzes");
-        for (user of users) {
+        for (const user of users) {
             user.buzzed = false;
         }
         io.emit("updateUsers", users);
@@ -47,7 +46,7 @@ io.on("connection", socket => {
 
     socket.on("clearScores", () => {
         console.log("Clearing Scores");
-        for (user of users) {
+        for (const user of users) {
             user.score = 0;
         }
         io.emit("updateUsers", users);
