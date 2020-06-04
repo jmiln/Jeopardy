@@ -38,24 +38,31 @@ function saveUserInfo() {
     localStorage.setItem("user", JSON.stringify(user));
 }
 
-formDiv.addEventListener("submit", (e) => {
+formDiv.addEventListener("submit", async (e) => {
     e.preventDefault();
-    user.name = formDiv.querySelector("[name=name]").value.toUpperCase();
-    socket.emit("join", user);
-    saveUserInfo();
-    buzzerName.innerText = user.name.toProperCase();
-    formDiv.classList.add("hidden");
-    buzzerDiv.classList.remove("hidden");
+    user.name = formDiv.querySelector("[name=name]").value.trim().toUpperCase();
+    socket.emit("checkUser", user.name);
+    console.log(`Sent: ${user.name}, ${socket.id}`);
+    socket.emit("join", user, function(valid) {
+        if (valid) {
+            saveUserInfo();
+            buzzerName.innerText = user.name.toProperCase();
+            formDiv.classList.add("hidden");
+            buzzerDiv.classList.remove("hidden");
+        } else {
+            alert("This name is already in use, please try again.");
+        }
+    });
 });
 
 buzzerDiv.addEventListener("click", () => {
-    socket.emit("buzz", user);
+    socket.emit("buzz", user, socket.id);
 });
 
 socket.on("updateUsers", users => {
-    const u = users.find(u => u.name === user.name);
+    const u = users.find(u => u.socketID === socket.id);
     if (!u) return;
-    buzzerScore.innerText = u.score;
+    buzzerScore.innerText = u.score.toLocaleString();
 });
 
 getUserInfo();

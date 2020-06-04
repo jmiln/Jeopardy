@@ -9,7 +9,7 @@ let currentUsers;
 
 const config = {
     allowMultipleBuzzes: false,  // Not sure about this one
-    editMode: true,
+    editMode: false,
     debug: false,
     audioVolume: 0.2
 };
@@ -30,6 +30,7 @@ function loadBoard() {
         const catHeaders = document.querySelectorAll(`#${board} thead td`);
         Object.keys(questions[board]).forEach((cat, ix) => {
             catHeaders[ix].innerText = cat;
+            catHeaders[ix].id = `${board}-${ix}`;
         });
         for (header of catHeaders) {
             header.style.fontSize = getFontSize(header.textContent.length)
@@ -152,26 +153,26 @@ function showQuestion(boardID, x, y) {
             // This needs to pop up a different screen before you get to the actual q/a
             const ddDiv = document.getElementById("dd");
             ddDiv.innerHTML = `
-            <div class="qDailyDouble">Daily Double!</div>
-            <audio src="src/audio/DailyDouble.mp3" autoplay></audio>
-            <div class="qControls">
-                <button onclick='closeQDD()'>Go Back</button>
-                <button onclick='showQuestion("${boardID}", ${x}, ${y}, true)'>Continue</button>
-            </div>
-        `;
+                <div class="qDailyDouble">Daily Double!</div>
+                <audio src="src/audio/DailyDouble.mp3" autoplay></audio>
+                <div class="qControls">
+                    <button onclick='closeQDD()'>Go Back</button>
+                    <button onclick='showQuestion("${boardID}", ${x}, ${y})'>Continue</button>
+                </div>
+            `;
 
             // Show/ unhide the div
             ddDiv.classList.remove("hidden");
         } else if (questionDiv.classList.contains("hidden")) {
             // Fill out the question Div
             questionDiv.innerHTML = `
-            <div id="aDiv">${thisQ.answer}</div>
-            <div id="qDiv" class="hidden">${thisQ.question}</div>
-            <div class="qControls">
-                <button onclick='closeQDD()'>Go Back</button>
-                <button id="answerButton" onclick='toggleQA()'>Show Question</button>
-            </div>
-        `;
+                <div id="aDiv">${thisQ.answer}</div>
+                <div id="qDiv" class="hidden">${thisQ.question}</div>
+                <div class="qControls">
+                    <button onclick='closeQDD()'>Go Back</button>
+                    <button id="answerButton" onclick='toggleQA()'>Show Question</button>
+                </div>
+            `;
 
             // Show/ unhide the div
             questionDiv.classList.remove("hidden");
@@ -190,9 +191,7 @@ function showQuestion(boardID, x, y) {
     } else {
         // Show the edit screen
 
-        // This should be a textArea for each of the answer and question, and a number textField for the amount
-        // These fields should fill in based on the defaults based on the questions object
-        // This should (eventually) save in the user's localstorage in case they refresh, and have a way to export/ import
+        // TODO This should (eventually) save in the user's localstorage in case they refresh, and have a way to export/ import
         if (questionDiv.classList.contains("hidden")) {
             // Fill out the question Div
             questionDiv.innerHTML = `
@@ -203,7 +202,7 @@ function showQuestion(boardID, x, y) {
                 <textarea name="questionTA" id="questionTA" cols="80" rows="6"></textarea>
 
                 <label for="amountTF">Amount: </label>
-                <input type="text" id="amountTF" oninput="this.value = this.value.replace(/[^0-9.]/g, '');" />
+                <input type="text" id="amountTF" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
 
                 <div class="qControls">
                     <button onclick='closeQDD()'>Cancel</button>
@@ -231,12 +230,51 @@ function saveEditQA(boardID, x, y) {
     thisQ.answer   = questionDiv.querySelector("#answerTA").value;
     thisQ.question = questionDiv.querySelector("#questionTA").value;
     thisQ.amount   = questionDiv.querySelector("#amountTF").value;
+        
     loadBoard();
     closeQDD();
 }
+const renameKey = (object, key, newKey) => {
+    const clonedObj = Object.assign({}, object);
+    const targetKey = clonedObj[key];
 
-function saveEditCat() {
+    delete clonedObj[key];
+    clonedObj[newKey] = targetKey;
+    return clonedObj;
+};
+  
+function showEditCat(cell) {
+    const [boardID, x] = cell.id.split("-");
+    console.log(boardID, x);
+    const questionDiv = document.getElementById("question");
+    const boardCat = Object.keys(questions[boardID])[x];
+
+    if (questionDiv.classList.contains("hidden")) {
+        // Fill out the question Div
+        questionDiv.innerHTML = `
+            <label for="catTF">Category Name: </label>
+            <input name="catTF" type="text" id="catTF"/>
+
+            <div class="qControls">
+                <button onclick='closeQDD()'>Cancel</button>
+                <button id="saveButton" onclick='saveEditCat("${boardID}", ${x})'>Save Changes</button>
+            </div>
+        `;
+        questionDiv.querySelector("#catTF").value = boardCat;
+
+        // Show/ unhide the div
+        questionDiv.classList.remove("hidden");
+    }
+}
+function saveEditCat(boardID, x) {
     // Save any edits to the specified cat
+    const boardCat = Object.keys(questions[boardID])[x];
+    const questionDiv = document.getElementById("question");
+    const newCat = questionDiv.querySelector("#catTF").value;
+    questions[boardID] = renameKey(questions[boardID], boardCat, newCat);
+
+    loadBoard();
+    closeQDD();
 }
 
 function toggleQA() {
@@ -380,14 +418,22 @@ function showHistory() {
 function toggleEdit() {
     config.editMode = !config.editMode;
     document.getElementById("editStatus").innerText = config.editMode ? "ON" : "OFF";
-    return false;
+    document.querySelectorAll("#tableContainer td").forEach(td => {
+        td.classList.toggle("edit");
+    });
+
+    document.querySelectorAll("#tableContainer thead td").forEach(td => {
+        td.onclick = function() {
+            showEditCat(this);
+        }
+    });
 
     // Some sort of mess to make the headers/ category cells clickable 
 }
 
 // Close the dropdown menu if the user clicks outside of it
 window.onclick = function (event) {
-    if (!event.target.matches('#settingsButton') && !event.target.matches('#dropdown li')) {
+    if (!event.target.matches('#settingsButton') && !event.target.closest('#dropdown li')) {
         var dropdowns = document.querySelector("#dropdown");
         if (!dropdowns.classList.contains("hidden")) {
             dropdowns.classList.add("hidden");

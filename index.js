@@ -19,20 +19,48 @@ app.get("/host", (req, res) => {
 
 const {inspect} = require("util");
 const users = [];
-io.on("connection", socket => {
-    console.log("Connection event");
 
-    // Some way to show the user's current score on their side too
-    socket.on("join", user => {
-        // Add new users to the list as they join in
-        if (!users.filter(a => a.name === user.name.toUpperCase()).length) {
+// io.on('connection', function (socket) {
+//     socket.emit('request', /* */ ); // emit an event to the socket
+//     io.emit('broadcast', /* */ ); // emit an event to all connected sockets
+//     socket.on('reply', function () { /* */ }); // listen to the event
+// });
+
+io.on("connection", socket => {
+    socket.on("checkUser", (uName) => {
+        console.log(uName);
+        console.log(users);
+        const active = users.filter(u => u.active && u.name === uName.toUpperCase())
+        if (active.length) {
+            return io.to(socket.id).emit("validateName", false);
+        }
+        return io.to(socket.id).emit("validateName", true);
+    })
+    socket.on("join", (user, validate) => {
+        const userList = users.filter(u => u.name.toUpperCase() === user.name.toUpperCase())
+        if (!userList.length) {
+            // There's nobody by that name here
             users.push({
                 score: 0,
                 name: user.name.toUpperCase(),
-                buzzed: false
+                buzzed: false,
+                active: true,
+                socketID: socket.id
             });
+            validate(true);
+        } else if (!userList.filter(u => u.active).length) {
+            // There has been someone by that name, but they're inactive
+            if (userList.length > 1) console.log(userList.length + " people here by the name " + user.name);
+            const u = userList[0];
+            u.socketID = socket.id;
+            u.active = true;
+            validate(true);
+        } else {
+            // There is someone by that name, active here
+            console.log(userList.length + " people here by the name " + user.name);
+            validate(false);
         }
-        console.log(user.name + " joined!");
+        console.log(user.name + " joined" + (user ? " back!" : "!"));
         io.emit("updateUsers", users);
     });
 
@@ -52,19 +80,32 @@ io.on("connection", socket => {
         io.emit("updateUsers", users);
     });
 
-    socket.on("buzz", user => {
+    socket.on("buzz", (user) => {
         // Highlight the user when they  buzz in
-        if (!users.filter(a => a.buzzed).length) {
+        if (!users.find(a => a.buzzed)) {
             console.log(user.name + " buzzed in");
-            const u = users.find(u => u.name === user.name);
-            u.buzzed = true;
-            io.emit("updateUsers", users);
+            const u = users.find(u => u.socketID === socket.id);
+            if (u) {
+                u.buzzed = true;
+                io.emit("updateUsers", users);
+            } else {
+                console.log("Something went wrong in buzz");
+                console.log(user, socket.id);
+            }
         }
     });
 
-    socket.on("disconnect", user => {
+    socket.on("disconnect", () => {
         // Take them out of the list and clear their points?
-        console.log(user.name ? user.name : "Host" + " disconnected");
+        const user = users.find(u => u.socketID === socket.id);
+        if (user && user.name) {
+            console.log(user.name + " disconnected");
+            io.emit("userDisconnect", user);
+            users.splice(users.indexOf(user));
+            io.emit("updateUsers", users);
+        } else {
+            console.log("Host disconnected");
+        }
     });
 
     socket.on("hostLoad", () => {

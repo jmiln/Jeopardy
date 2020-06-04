@@ -37,6 +37,10 @@ body {
     color: white;
 }
 
+#tableContainer thead td.edit {
+    cursor: pointer;
+}
+
 #tableContainer td {
     max-width: 150px;
     padding: 10px;
@@ -52,6 +56,11 @@ body {
 #tableContainer tbody td.visited {
     color: var(--blue);
     text-shadow: none;
+}
+
+#tableContainer tbody td.edit {
+    text-shadow: var(--shadow) !important;
+    color: var(--yellow) !important;
 }
 
 #tableContainer tbody td.selected {
@@ -74,7 +83,7 @@ body {
 
 
 .scoreContainer {
-    width: 300px;
+    width: 350px;
     position: relative;
     background-color: var(--blue);
     color: white;
@@ -95,7 +104,7 @@ body {
 }
 
 .scoreContainer .user .uName {
-    width: 100px;
+    width: 150px;
     white-space: nowrap;
     overflow: hidden;
     text-align: left;
