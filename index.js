@@ -61,6 +61,7 @@ io.on("connection", socket => {
             validate(false);
         }
         console.log(user.name + " joined" + (user ? " back!" : "!"));
+        io.emit("userConnect", user);
         io.emit("updateUsers", users);
     });
 

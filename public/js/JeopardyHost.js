@@ -446,3 +446,9 @@ socket.on("updateUsers", users => {
     currentUsers = users;
     loadUsers(users);
 });
+socket.on("userConnect", user => {
+    log.push(`${user.name.toProperCase()} has joined`);
+});
+socket.on("userDisconnect", user => {
+    log.push(`${user.name.toProperCase()} has left with ${user.score.toLocaleString()} points`);
+});

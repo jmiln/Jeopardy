@@ -186,7 +186,7 @@ body {
     font-weight: bold;
     padding: 10px;
     background-color: var(--blue);
-    color: var(--orange);
+    color: white;
     text-shadow: var(--shadow);
     border: var(--border);
 }
