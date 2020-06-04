@@ -3,6 +3,7 @@
 
 <head>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link type="text/css" href="/css/Jeopardy.css"     rel="stylesheet">
     <link type="text/css" href="/css/JeopardyHost.css" rel="stylesheet">
 </head>
@@ -130,12 +131,18 @@
 
                 <div id="controls">
                     <button onclick="clearBuzzes()">Clear Buzzes</button>
-                    <button onclick="clearBoard()">Reset Board</button>
-                    <button onclick="resetScores()">Reset Scores</button>
+                    <button onclick="clearBoard()">Clear Board</button>
+                    <button onclick="resetScores()">Clear Scores</button>
                     <button id="histButton" style="width: 95px;" onclick="showHistory()">Show History</button>
                     <button id="boardSwapButton" onclick="swapBoard()">Show Board 2</button>
                 </div>
             </div>
+        </div>
+        <div id="settingsDiv">
+            <i id="settingsButton" class="fa fa-gear" style="font-size:36px;" onclick="document.getElementById('dropdown').classList.toggle('hidden')"></i>
+            <ul id="dropdown" class="hidden">
+                <li onclick="toggleEdit()">Edit Mode: <span id="editStatus" style="font-weight: bold;">OFF</span></li>
+            </ul>
         </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>

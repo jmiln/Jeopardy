@@ -10,9 +10,9 @@ function loadFunc() {
     const windowWidth  = window.innerWidth;
     let buttonSize = 0;
     if (windowHeight > windowWidth) {
-        buttonSize = windowWidth * .8;
+        buttonSize = windowWidth * .6;
     } else {
-        buttonSize = windowHeight * .8;
+        buttonSize = windowHeight * .6;
     }
 
     const buzzerBtn = document.getElementById("buzzerBtn");

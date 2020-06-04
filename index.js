@@ -54,8 +54,8 @@ io.on("connection", socket => {
 
     socket.on("buzz", user => {
         // Highlight the user when they  buzz in
-        console.log(user.name+ " buzzed in");
         if (!users.filter(a => a.buzzed).length) {
+            console.log(user.name + " buzzed in");
             const u = users.find(u => u.name === user.name);
             u.buzzed = true;
             io.emit("updateUsers", users);

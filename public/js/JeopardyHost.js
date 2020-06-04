@@ -5,9 +5,14 @@ const totalColumns = 5;
 let selectedValue = 0;
 let currentCat = "";
 let boardWidth, boardHeight;
-const debug = true;
 let currentUsers;
-const audioVolume = 0.2;
+
+const config = {
+    allowMultipleBuzzes: false,  // Not sure about this one
+    editMode: true,
+    debug: false,
+    audioVolume: 0.2
+};
 
 // Capitalizes the first letter of each word
 String.prototype.toProperCase = function() {
@@ -37,12 +42,13 @@ function loadBoard() {
             const thisCat = boardContents[Object.keys(boardContents)[thisX]];
             const thisQ   = thisCat[Object.keys(thisCat)[thisY]];
             thisCell.innerHTML = "$" + thisQ.amount;
+            thisCell.id = `${thisX},${thisY}`;
 
             thisCell.onclick = function() {
                 const boardID = this.parentElement.parentElement.parentElement.id;
 
                 // Set the current category
-                currentCat = thisCell.parentElement.parentElement.parentElement.querySelectorAll("thead td")[thisX].innerText;
+                currentCat = document.getElementById(boardID).querySelectorAll("thead td")[thisX].innerText;
                 selectedValue = parseInt(thisCell.innerText.replace("$", ""));
 
                 const allSelected = document.getElementsByClassName("selected");
@@ -85,7 +91,7 @@ function sizeBoards() {
 
     const qDivs = document.getElementsByClassName("question");
     for (qDiv of qDivs) {
-        qDiv.style.width = (boardWidth - 8) + "px";
+        qDiv.style.width  = (boardWidth - 8) + "px";
         qDiv.style.height = (boardHeight - 8) + "px";
     }
 
@@ -118,7 +124,7 @@ function setDailyDoubles(boardID) {
     let thisCat = boardContents[Object.keys(boardContents)[targetCat]];
     let thisRow = thisCat[Object.keys(thisCat)[targetRow]];
     thisRow.dailyDouble = true;
-    if (debug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
+    if (config.edbug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
 
     if (ddNum === 2) {
         prevCat = targetCat;
@@ -129,23 +135,23 @@ function setDailyDoubles(boardID) {
         thisCat = boardContents[Object.keys(boardContents)[targetCat]];
         thisRow = thisCat[Object.keys(thisCat)[targetRow]];
         thisRow.dailyDouble = true;
-        if (debug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
+        if (config.edbug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
     }
 }
 
-function showQuestion(boardID, x, y, bypassDD=false) {
+function showQuestion(boardID, x, y) {
     // Fill in the list to be shown
     const questionDiv = document.getElementById("question");
     const ddDiv = document.getElementById("dd");
 
     const boardContents = questions[boardID];
     const thisCat = boardContents[Object.keys(boardContents)[x]];
-    const thisQ   = thisCat[Object.keys(thisCat)[y]];
-
-    if (thisQ.dailyDouble && ddDiv.classList.contains("hidden")) {
-        // This needs to pop up a different screen before you get to the actual q/a
-        const ddDiv = document.getElementById("dd");
-        ddDiv.innerHTML = `
+    const thisQ = thisCat[Object.keys(thisCat)[y]];
+    if (!config.editMode) {
+        if (thisQ.dailyDouble && ddDiv.classList.contains("hidden")) {
+            // This needs to pop up a different screen before you get to the actual q/a
+            const ddDiv = document.getElementById("dd");
+            ddDiv.innerHTML = `
             <div class="qDailyDouble">Daily Double!</div>
             <audio src="src/audio/DailyDouble.mp3" autoplay></audio>
             <div class="qControls">
@@ -154,11 +160,11 @@ function showQuestion(boardID, x, y, bypassDD=false) {
             </div>
         `;
 
-        // Show/ unhide the div
-        ddDiv.classList.remove("hidden");
-    } else if (questionDiv.classList.contains("hidden")) {
-        // Fill out the question Div
-        questionDiv.innerHTML = `
+            // Show/ unhide the div
+            ddDiv.classList.remove("hidden");
+        } else if (questionDiv.classList.contains("hidden")) {
+            // Fill out the question Div
+            questionDiv.innerHTML = `
             <div id="aDiv">${thisQ.answer}</div>
             <div id="qDiv" class="hidden">${thisQ.question}</div>
             <div class="qControls">
@@ -167,20 +173,70 @@ function showQuestion(boardID, x, y, bypassDD=false) {
             </div>
         `;
 
-        // Show/ unhide the div
-        questionDiv.classList.remove("hidden");
-    } else {
-        // Should never be an else since it should pop up above the board, and will have a button there
-        console.log("Missed all");
-    }
+            // Show/ unhide the div
+            questionDiv.classList.remove("hidden");
+        } else {
+            // Should never be an else since it should pop up above the board, and will have a button there
+            console.log("Missed all");
+        }
 
-    // In case there is an audio track to play
-    const audioList = document.getElementsByTagName("audio");
-    if (audioList.length) {
-        for (audio of audioList) {
-            audio.volume = .2
+        // In case there is an audio track to play
+        const audioList = document.getElementsByTagName("audio");
+        if (audioList.length) {
+            for (audio of audioList) {
+                audio.volume = config.audioVolume
+            }
+        }
+    } else {
+        // Show the edit screen
+
+        // This should be a textArea for each of the answer and question, and a number textField for the amount
+        // These fields should fill in based on the defaults based on the questions object
+        // This should (eventually) save in the user's localstorage in case they refresh, and have a way to export/ import
+        if (questionDiv.classList.contains("hidden")) {
+            // Fill out the question Div
+            questionDiv.innerHTML = `
+                <label for="answerTA">Answer: </label>
+                <textarea name="answerTA" id="answerTA" cols="80" rows="6"></textarea>
+
+                <label for="questionTA">Question: </label>
+                <textarea name="questionTA" id="questionTA" cols="80" rows="6"></textarea>
+
+                <label for="amountTF">Amount: </label>
+                <input type="text" id="amountTF" oninput="this.value = this.value.replace(/[^0-9.]/g, '');" />
+
+                <div class="qControls">
+                    <button onclick='closeQDD()'>Cancel</button>
+                    <button id="saveButton" onclick='saveEditQA("${boardID}", ${x}, ${y})'>Save Changes</button>
+                </div>
+            `;
+            questionDiv.querySelector("#answerTA").value = thisQ.answer;
+            questionDiv.querySelector("#questionTA").value = thisQ.question;
+            questionDiv.querySelector("#amountTF").value = thisQ.amount;
+
+            // Show/ unhide the div
+            questionDiv.classList.remove("hidden");
+            questionDiv.classList.add("edit");
         }
     }
+}
+
+function saveEditQA(boardID, x, y) {
+    // Save any edits to the specified cell
+    const boardContents = questions[boardID];
+    const thisCat = boardContents[Object.keys(boardContents)[x]];
+    const thisQ = thisCat[Object.keys(thisCat)[y]];
+
+    const questionDiv = document.getElementById("question");
+    thisQ.answer   = questionDiv.querySelector("#answerTA").value;
+    thisQ.question = questionDiv.querySelector("#questionTA").value;
+    thisQ.amount   = questionDiv.querySelector("#amountTF").value;
+    loadBoard();
+    closeQDD();
+}
+
+function saveEditCat() {
+    // Save any edits to the specified cat
 }
 
 function toggleQA() {
@@ -227,7 +283,7 @@ function loadUsers(users) {
     }
 
     // Add in each user
-    console.log(users);
+    if (config.edbug) console.log(users);
     users.sort((a, b) => a.name > b.name ? 1 : -1).forEach((user, ix) => {
         const score = user.score;
         const userID = "user" + ix;
@@ -293,7 +349,7 @@ function swapBoard() {
 }
 
 function clearBuzzes() {
-    console.log("Clearing Buzzes");
+    log.push("Clearing Buzzes");
     socket.emit("clearBuzzes");
 }
 
@@ -321,8 +377,26 @@ function showHistory() {
     }
 }
 
+function toggleEdit() {
+    config.editMode = !config.editMode;
+    document.getElementById("editStatus").innerText = config.editMode ? "ON" : "OFF";
+    return false;
+
+    // Some sort of mess to make the headers/ category cells clickable 
+}
+
+// Close the dropdown menu if the user clicks outside of it
+window.onclick = function (event) {
+    if (!event.target.matches('#settingsButton') && !event.target.matches('#dropdown li')) {
+        var dropdowns = document.querySelector("#dropdown");
+        if (!dropdowns.classList.contains("hidden")) {
+            dropdowns.classList.add("hidden");
+        }
+    }
+}
+
 socket.on("updateUsers", users => {
-    console.log("Socket reloading users");
+    if (config.edbug) console.log("Socket reloading users");
     currentUsers = users;
     loadUsers(users);
 });
