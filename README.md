@@ -11,9 +11,11 @@ Base template for keeping score of a Jeopardy game
 * Once it's running, you can go to `localhost:4321` to get the buzzer, or `localhost:4321/host` to see the board and such
 
 
-* Questions/ answers and such are loaded into the src/js/questions.js file, no way to alter that other than manually
-  * Changing catagory names, questions, and amounts will reflect on the board and what pops up
+* Questions/ answers and such are loaded into the src/js/questions.js file
+  * You can change catagory names, questions, and amounts will reflect on the board and what pops up
   * Remember, the answer is what is shown first, not the question
+
+* You can also click the gear in the top right of the host's screen, put it in edit mode, and click on the headers/ cells to change the relevant info
 
 
 * The page will set Double Jeopardy spots, 1 in the first board, and 2 in the second (Row 3-5 only)
