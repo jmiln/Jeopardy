@@ -346,12 +346,12 @@ function loadUsers(users) {
         const userID = "user" + ix;
         const div = document.createElement("div");
         div.className = "user";
-        div.id        = userID;
+        div.id        = user.socketID;
         div.innerHTML =
            `<div class="uName ${user.buzzed ? "buzzed" : ""}">${user.name.toProperCase()}</div>
             <div class="uScore">${score}</div>
-            <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', 1)">+</a>
-            <a class="menter" href="javascript:void(0)" onClick="crementUser('${userID}', -1)">-</a>
+            <a class="menter" href="javascript:void(0)" onClick="crementUser('${user.socketID}', 1)">+</a>
+            <a class="menter" href="javascript:void(0)" onClick="crementUser('${user.socketID}', -1)">-</a>
             <div class="buzzer ${user.buzzed ? "buzzed" : ""}"></div> `;
         userDiv.appendChild(div);
     });
@@ -377,7 +377,7 @@ function crementUser(uID, dir) {
     }
 
     // Change the score
-    socket.emit("hostScoreUpdate", userName, amount, config.roomID);
+    socket.emit("hostScoreUpdate", uID, amount, config.roomID);
 }
 
 function clearBoard(num) {
@@ -390,6 +390,7 @@ function clearBoard(num) {
         });
         selectedValue = 0;
         log.push("Board has been cleared");
+        closeQDD();
     }
 }
 

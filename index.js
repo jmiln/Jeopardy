@@ -19,7 +19,9 @@ app.get("/host", (req, res) => {
 });
 
 const {inspect} = require("util");
-const users = {};
+const users = {};  // A mapping of user's socket IDs to the roomID they are in
+const hosts = {};  // A mapping of host's socket IDs to the roomID they're hosting
+const rooms = {};  // This contains all the rooms, and which users are in there
 
 // io.on('connection', function (socket) {
 //     socket.emit('request', /* */ ); // emit an event to the socket
@@ -28,22 +30,24 @@ const users = {};
 // });
 
 io.on("connection", socket => {
+    let type = "";
     socket.on("join", (user, validate) => {
-        const userList = users[user.roomID] ? users[user.roomID].filter(u => u.name.toUpperCase() === user.name.toUpperCase()) : null;
+        type = "user";
+        const userList = rooms[user.roomID] ? rooms[user.roomID].filter(u => u.name.toUpperCase() === user.name.toUpperCase()) : null;
         if (!userList) {
             return validate("Invalid Room");
         } else if (!userList.length) {
             // There's nobody by that name here
-            users[user.roomID].push({
+            rooms[user.roomID].push({
                 score: 0,
-                name: user.name.toUpperCase(),
+                name: user.name,
                 buzzed: false,
                 active: true,
                 socketID: socket.id
             });
             validate(true);
         } else if (!userList.filter(u => u.active).length) {
-            // There has been someone by that name, but they're inactive
+            // There has been someone by that name, but they're inactive, so let this user take over
             if (userList.length > 1) console.log(userList.length + " people here by the name " + user.name);
             const u = userList[0];
             u.socketID = socket.id;
@@ -55,50 +59,56 @@ io.on("connection", socket => {
             return validate("This name is already in use, please try again.");
         }
         socket.join(user.roomID);
+        users[socket.id] = user.roomID;
         console.log(`[Room ${user.roomID}] ${user.name} joined!`);
         io.to(user.roomID).emit("userConnect", user);
-        io.to(user.roomID).emit("updateUsers", users[user.roomID]);
+        io.to(user.roomID).emit("updateUsers", rooms[user.roomID]);
     });
 
     socket.on("hostJoin", (roomID) => {
         console.log("Host joined - " + socket.id);
+        type = "host";
         // Send the host an ID for people to connect to
         if (!roomID || !roomID.toString().length === ROOM_ID_LEN || !roomID.toString.match(/[a-zA-Z0-9]/)) {
             roomID = randomString(ROOM_ID_LEN);
         }
-        users[roomID] = [];
+        rooms[roomID] = [];
         socket.join(roomID);
         socket.emit("hostJoined", roomID);
 
+        hosts[socket.id] = {
+            roomID: roomID
+        };
+
         // Send out any current users
-        io.to(roomID).emit("scoreUpdate", users[roomID]);
-        io.to(roomID).emit("updateUsers", users[roomID]);
+        io.to(roomID).emit("scoreUpdate", rooms[roomID]);
+        io.to(roomID).emit("updateUsers", rooms[roomID]);
     });
 
     socket.on("clearBuzzes", (roomID) => {
         console.log("Clearing Buzzes");
-        for (const user of users[roomID]) {
+        for (const user of rooms[roomID]) {
             user.buzzed = false;
         }
-        io.to(roomID).emit("updateUsers", users[roomID]);
+        io.to(roomID).emit("updateUsers", rooms[roomID]);
     });
 
     socket.on("clearScores", (roomID) => {
         console.log("Clearing Scores");
-        for (const user of users[roomID]) {
+        for (const user of rooms[roomID]) {
             user.score = 0;
         }
-        io.to(roomID).emit("updateUsers", users[roomID]);
+        io.to(roomID).emit("updateUsers", rooms[roomID]);
     });
 
     socket.on("buzz", (user) => {
         // Highlight the user when they  buzz in
-        if (!users[user.roomID].find(a => a.buzzed)) {
+        if (!rooms[user.roomID].find(a => a.buzzed)) {
             console.log(user.name + " buzzed in");
-            const u = users[user.roomID].find(u => u.socketID === socket.id);
+            const u = rooms[user.roomID].find(u => u.socketID === socket.id);
             if (u) {
                 u.buzzed = true;
-                io.to(user.roomID).emit("updateUsers", users[user.roomID]);
+                io.to(user.roomID).emit("updateUsers", rooms[user.roomID]);
             } else {
                 console.log("Something went wrong in buzz");
                 console.log(user, socket.id);
@@ -107,43 +117,45 @@ io.on("connection", socket => {
     });
 
     socket.on("disconnect", () => {
-        // Take them out of the list and clear their points?
-        let user, roomID;
-        for (const room of Object.keys(users)) {
-            user = users[room].find(u => u.socketID === socket.id);
-            if (user) {
-                roomID = room;
-                break;
-            }
-        }
-        if (user && user.name) {
-            if (roomID) {
-                // Remove the user from the room's scoreboard if they were in a room
-                users[roomID].splice(users[roomID].indexOf(user), 1);
-            }
-
-            console.log(user.name + " disconnected");
-            io.to(roomID).emit("userDisconnect", user);
-            if (users && users[roomID]) {
-                users[roomID].splice(users[roomID].indexOf(user));
-            }
-            io.to(roomID).emit("updateUsers", users[roomID]);
-        } else {
+        if (type === "host") {
+            // Host disconnected, kick all users out
             console.log("Host disconnected");
+            io.to(hosts[socket.id].roomID).emit("forceClose");
+            delete rooms[hosts[socket.id].roomID];
+        } else {
+            // Take them out of the list and clear their points?
+            if (users[socket.id]) {
+                // If there is a user, then there's a room, so tell the host that they left
+                const roomID = users[socket.id];
+                const user = rooms[roomID].find(u => u.socketID == socket.id);
+
+                // Remove the user from the room's scoreboard if they were in a room
+                if (rooms[roomID]) {
+                    rooms[roomID].splice(rooms[roomID].indexOf(user), 1);
+                }
+                console.log(user.name + " disconnected from " + roomID);
+                io.to(roomID).emit("userDisconnect", user);
+                if (rooms && rooms[roomID]) {
+                    rooms[roomID].splice(rooms[roomID].indexOf(user));
+                }
+                io.to(roomID).emit("updateUsers", rooms[roomID]);
+            } else {
+                // The user never joined a room, so didn't get assigned a name or room
+            }
         }
     });
 
-    socket.on("hostScoreUpdate", (userName, amount, roomID) => {
+    socket.on("hostScoreUpdate", (uID, amount, roomID) => {
         // Update the user's scores
-        updateScore(userName.toUpperCase(), amount, roomID);
+        updateScore(uID, amount, roomID);
         // Send out the new scores to the users
-        io.to(roomID).emit("updateUsers", users[roomID], roomID);
+        io.to(roomID).emit("updateUsers", rooms[roomID], roomID);
     });
 });
 
-function updateScore(userName, amount, roomID) {
-    console.log("Updating scores: " + userName + ", " + amount);
-    const user = users[roomID].find(u => u.name === userName);
+function updateScore(uID, amount, roomID) {
+    const user = rooms[roomID].find(u => u.socketID === uID);
+    console.log("Updating scores: " + user.name + ", " + amount);
     if (!user) {
         console.log("Something broke, I could not find the user to update");
     } else {

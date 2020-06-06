@@ -64,5 +64,10 @@ socket.on("updateUsers", users => {
     if (!u) return;
     buzzerScore.innerText = u.score.toLocaleString();
 });
+socket.on("forceClose", () => {
+    formDiv.classList.remove("hidden");
+    buzzerDiv.classList.add("hidden");
+    alert("The host has closed the game");
+});
 
 getUserInfo();
