@@ -1,4 +1,4 @@
-const questions = {
+let questions = {
     board1: {
         "Cat1.1": {
             q1: {

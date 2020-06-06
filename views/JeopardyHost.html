@@ -8,7 +8,7 @@
     <link type="text/css" href="/css/JeopardyHost.css" rel="stylesheet">
 </head>
 
-<body onload="loadBoard()">
+<body onload="init()">
     <div class="mainContainer">
         <div class="scoreContainer">
             <div id="users">
@@ -142,9 +142,12 @@
             <i id="settingsButton" class="fa fa-gear" style="font-size:36px;" onclick="document.getElementById('dropdown').classList.toggle('hidden')"></i>
             <ul id="dropdown" class="hidden">
                 <li onclick="toggleEdit()">Edit Mode: <span id="editStatus" style="font-weight: bold;">OFF</span></li>
+                <li onclick="saveQuestions()">Save Questions</li>
+                <li onclick="loadSavedQuestions()">Load Questions</li>
             </ul>
         </div>
     </div>
+    <div id="roomIDContainer">Room ID: <span id="roomID"></span></div>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/js/JeopardyHost.js"></script>
     <script type="text/javascript" src="/js/questions.js"></script>

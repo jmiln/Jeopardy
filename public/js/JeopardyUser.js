@@ -32,6 +32,7 @@ function getUserInfo() {
     user = JSON.parse(localStorage.getItem("user")) || {};
     if (user.name) {
         formDiv.querySelector("[name=name]").value = user.name.toProperCase();
+        formDiv.querySelector("[name=room]").value = user.roomID;
     }
 }
 function saveUserInfo() {
@@ -41,16 +42,15 @@ function saveUserInfo() {
 formDiv.addEventListener("submit", async (e) => {
     e.preventDefault();
     user.name = formDiv.querySelector("[name=name]").value.trim().toUpperCase();
-    socket.emit("checkUser", user.name);
-    console.log(`Sent: ${user.name}, ${socket.id}`);
+    user.roomID = formDiv.querySelector("[name=room]").value.trim();
     socket.emit("join", user, function(valid) {
-        if (valid) {
+        if (valid && !valid.length) {
             saveUserInfo();
             buzzerName.innerText = user.name.toProperCase();
             formDiv.classList.add("hidden");
             buzzerDiv.classList.remove("hidden");
         } else {
-            alert("This name is already in use, please try again.");
+            alert(valid);
         }
     });
 });

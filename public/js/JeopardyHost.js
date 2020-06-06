@@ -2,6 +2,8 @@ const socket = io()
 
 const log = [];
 const totalColumns = 5;
+
+let room = {};
 let selectedValue = 0;
 let currentCat = "";
 let boardWidth, boardHeight;
@@ -11,7 +13,8 @@ const config = {
     allowMultipleBuzzes: false,  // Not sure about this one
     editMode: false,
     debug: false,
-    audioVolume: 0.2
+    audioVolume: 0.2,
+    roomID: ""
 };
 
 // Capitalizes the first letter of each word
@@ -21,9 +24,15 @@ String.prototype.toProperCase = function() {
     });
 };
 
+function init() {
+    loadBoard();
+
+    socket.emit("hostJoin");
+}
+
 function loadBoard() {
     // Set each catagory header for both boards
-    for (board of ["board1", "board2"]) {
+    for (const board of ["board1", "board2"]) {
         setDailyDoubles(board);
 
         const boardContents = questions[board];
@@ -31,10 +40,8 @@ function loadBoard() {
         Object.keys(questions[board]).forEach((cat, ix) => {
             catHeaders[ix].innerText = cat;
             catHeaders[ix].id = `${board}-${ix}`;
+            catHeaders[ix].style.fontSize = getFontSize(cat.length)
         });
-        for (header of catHeaders) {
-            header.style.fontSize = getFontSize(header.textContent.length)
-        }
 
         const boardCells = document.querySelectorAll(`#${board} tbody td`);
         boardCells.forEach((thisCell, ix) => {
@@ -70,9 +77,19 @@ function loadBoard() {
 
     // Get the size of the table so I can overlay it later?
     sizeBoards();
+}
 
-    // Load the questions in from a JSON file? Or just load it from the object above?
-    socket.emit("hostLoad", {name: "Board Host"});
+function saveQuestions() {
+    localStorage.setItem("questions", JSON.stringify(questions));
+}
+function loadSavedQuestions(init=false) {
+    const qs = JSON.parse(localStorage.getItem("questions")) || {};
+    if (qs) {
+        questions = qs;
+        loadBoard();
+    } else if (!init) {
+        alert("No questions to load");
+    }
 }
 
 function sizeBoards() {
@@ -125,7 +142,7 @@ function setDailyDoubles(boardID) {
     let thisCat = boardContents[Object.keys(boardContents)[targetCat]];
     let thisRow = thisCat[Object.keys(thisCat)[targetRow]];
     thisRow.dailyDouble = true;
-    if (config.edbug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
+    if (config.debug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
 
     if (ddNum === 2) {
         prevCat = targetCat;
@@ -136,7 +153,7 @@ function setDailyDoubles(boardID) {
         thisCat = boardContents[Object.keys(boardContents)[targetCat]];
         thisRow = thisCat[Object.keys(thisCat)[targetRow]];
         thisRow.dailyDouble = true;
-        if (config.edbug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
+        if (config.debug) console.log(`Setting DD for ${boardID} at (${targetCat}, ${targetRow})`);
     }
 }
 
@@ -230,22 +247,25 @@ function saveEditQA(boardID, x, y) {
     thisQ.answer   = questionDiv.querySelector("#answerTA").value;
     thisQ.question = questionDiv.querySelector("#questionTA").value;
     thisQ.amount   = questionDiv.querySelector("#amountTF").value;
-        
+
     loadBoard();
     closeQDD();
 }
-const renameKey = (object, key, newKey) => {
-    const clonedObj = Object.assign({}, object);
-    const targetKey = clonedObj[key];
-
-    delete clonedObj[key];
-    clonedObj[newKey] = targetKey;
-    return clonedObj;
+const renameKey = (obj, oldKey, newKey) => {
+    const tempQ = {};
+    for (const key of Object.keys(obj)) {
+        if (key === oldKey) {
+            tempQ[newKey] = obj[oldKey];
+        } else {
+            tempQ[key] = obj[key];
+        }
+    }
+    return tempQ;
 };
-  
+
 function showEditCat(cell) {
     const [boardID, x] = cell.id.split("-");
-    console.log(boardID, x);
+    const oldCat = cell.innerText;
     const questionDiv = document.getElementById("question");
     const boardCat = Object.keys(questions[boardID])[x];
 
@@ -257,7 +277,7 @@ function showEditCat(cell) {
 
             <div class="qControls">
                 <button onclick='closeQDD()'>Cancel</button>
-                <button id="saveButton" onclick='saveEditCat("${boardID}", ${x})'>Save Changes</button>
+                <button id="saveButton" onclick='saveEditCat("${boardID}", "${oldCat}")'>Save Changes</button>
             </div>
         `;
         questionDiv.querySelector("#catTF").value = boardCat;
@@ -266,12 +286,11 @@ function showEditCat(cell) {
         questionDiv.classList.remove("hidden");
     }
 }
-function saveEditCat(boardID, x) {
+function saveEditCat(boardID, oldCat) {
     // Save any edits to the specified cat
-    const boardCat = Object.keys(questions[boardID])[x];
     const questionDiv = document.getElementById("question");
     const newCat = questionDiv.querySelector("#catTF").value;
-    questions[boardID] = renameKey(questions[boardID], boardCat, newCat);
+    questions[boardID] = renameKey(questions[boardID], oldCat, newCat);
 
     loadBoard();
     closeQDD();
@@ -321,7 +340,7 @@ function loadUsers(users) {
     }
 
     // Add in each user
-    if (config.edbug) console.log(users);
+    if (config.debug) console.log(users);
     users.sort((a, b) => a.name > b.name ? 1 : -1).forEach((user, ix) => {
         const score = user.score;
         const userID = "user" + ix;
@@ -358,7 +377,7 @@ function crementUser(uID, dir) {
     }
 
     // Change the score
-    socket.emit("hostScoreUpdate", userName, amount);
+    socket.emit("hostScoreUpdate", userName, amount, config.roomID);
 }
 
 function clearBoard(num) {
@@ -388,12 +407,12 @@ function swapBoard() {
 
 function clearBuzzes() {
     log.push("Clearing Buzzes");
-    socket.emit("clearBuzzes");
+    socket.emit("clearBuzzes", config.roomID);
 }
 
 function resetScores() {
     if (confirm("Are you sure you want to clear all players' scores?")) {
-        socket.emit("clearScores");
+        socket.emit("clearScores", config.roomID);
         log.push("Scores have been reset");
     }
 }
@@ -422,13 +441,16 @@ function toggleEdit() {
         td.classList.toggle("edit");
     });
 
+    // Make the headers clickable
     document.querySelectorAll("#tableContainer thead td").forEach(td => {
-        td.onclick = function() {
-            showEditCat(this);
+        if (config.editMode) {
+            td.onclick = null;
+        } else {
+            td.onclick = function() {
+                showEditCat(this);
+            }
         }
     });
-
-    // Some sort of mess to make the headers/ category cells clickable 
 }
 
 // Close the dropdown menu if the user clicks outside of it
@@ -441,8 +463,13 @@ window.onclick = function (event) {
     }
 }
 
+socket.on("hostJoined", roomID => {
+    if (config.debug) console.log("Host got roomID: " + roomID);
+    config.roomID = roomID;
+    document.getElementById("roomID").innerText = roomID;
+});
 socket.on("updateUsers", users => {
-    if (config.edbug) console.log("Socket reloading users");
+    if (config.debug) console.log("Socket reloading users");
     currentUsers = users;
     loadUsers(users);
 });

@@ -1,6 +1,7 @@
 /* eslint no-unused-vars: 0 */
 
 const PORT = 4321;
+const ROOM_ID_LEN = 6;
 const express = require("express");
 const app = express();
 
@@ -18,7 +19,7 @@ app.get("/host", (req, res) => {
 });
 
 const {inspect} = require("util");
-const users = [];
+const users = {};
 
 // io.on('connection', function (socket) {
 //     socket.emit('request', /* */ ); // emit an event to the socket
@@ -27,20 +28,13 @@ const users = [];
 // });
 
 io.on("connection", socket => {
-    socket.on("checkUser", (uName) => {
-        console.log(uName);
-        console.log(users);
-        const active = users.filter(u => u.active && u.name === uName.toUpperCase())
-        if (active.length) {
-            return io.to(socket.id).emit("validateName", false);
-        }
-        return io.to(socket.id).emit("validateName", true);
-    })
     socket.on("join", (user, validate) => {
-        const userList = users.filter(u => u.name.toUpperCase() === user.name.toUpperCase())
-        if (!userList.length) {
+        const userList = users[user.roomID] ? users[user.roomID].filter(u => u.name.toUpperCase() === user.name.toUpperCase()) : null;
+        if (!userList) {
+            return validate("Invalid Room");
+        } else if (!userList.length) {
             // There's nobody by that name here
-            users.push({
+            users[user.roomID].push({
                 score: 0,
                 name: user.name.toUpperCase(),
                 buzzed: false,
@@ -58,37 +52,53 @@ io.on("connection", socket => {
         } else {
             // There is someone by that name, active here
             console.log(userList.length + " people here by the name " + user.name);
-            validate(false);
+            return validate("This name is already in use, please try again.");
         }
-        console.log(user.name + " joined" + (user ? " back!" : "!"));
-        io.emit("userConnect", user);
-        io.emit("updateUsers", users);
+        socket.join(user.roomID);
+        console.log(`[Room ${user.roomID}] ${user.name} joined!`);
+        io.to(user.roomID).emit("userConnect", user);
+        io.to(user.roomID).emit("updateUsers", users[user.roomID]);
     });
 
-    socket.on("clearBuzzes", () => {
+    socket.on("hostJoin", (roomID) => {
+        console.log("Host joined - " + socket.id);
+        // Send the host an ID for people to connect to
+        if (!roomID || !roomID.toString().length === ROOM_ID_LEN || !roomID.toString.match(/[a-zA-Z0-9]/)) {
+            roomID = randomString(ROOM_ID_LEN);
+        }
+        users[roomID] = [];
+        socket.join(roomID);
+        socket.emit("hostJoined", roomID);
+
+        // Send out any current users
+        io.to(roomID).emit("scoreUpdate", users[roomID]);
+        io.to(roomID).emit("updateUsers", users[roomID]);
+    });
+
+    socket.on("clearBuzzes", (roomID) => {
         console.log("Clearing Buzzes");
-        for (const user of users) {
+        for (const user of users[roomID]) {
             user.buzzed = false;
         }
-        io.emit("updateUsers", users);
+        io.to(roomID).emit("updateUsers", users[roomID]);
     });
 
-    socket.on("clearScores", () => {
+    socket.on("clearScores", (roomID) => {
         console.log("Clearing Scores");
-        for (const user of users) {
+        for (const user of users[roomID]) {
             user.score = 0;
         }
-        io.emit("updateUsers", users);
+        io.to(roomID).emit("updateUsers", users[roomID]);
     });
 
     socket.on("buzz", (user) => {
         // Highlight the user when they  buzz in
-        if (!users.find(a => a.buzzed)) {
+        if (!users[user.roomID].find(a => a.buzzed)) {
             console.log(user.name + " buzzed in");
-            const u = users.find(u => u.socketID === socket.id);
+            const u = users[user.roomID].find(u => u.socketID === socket.id);
             if (u) {
                 u.buzzed = true;
-                io.emit("updateUsers", users);
+                io.to(user.roomID).emit("updateUsers", users[user.roomID]);
             } else {
                 console.log("Something went wrong in buzz");
                 console.log(user, socket.id);
@@ -98,39 +108,59 @@ io.on("connection", socket => {
 
     socket.on("disconnect", () => {
         // Take them out of the list and clear their points?
-        const user = users.find(u => u.socketID === socket.id);
+        let user, roomID;
+        for (const room of Object.keys(users)) {
+            user = users[room].find(u => u.socketID === socket.id);
+            if (user) {
+                roomID = room;
+                break;
+            }
+        }
         if (user && user.name) {
+            if (roomID) {
+                // Remove the user from the room's scoreboard if they were in a room
+                users[roomID].splice(users[roomID].indexOf(user), 1);
+            }
+
             console.log(user.name + " disconnected");
-            io.emit("userDisconnect", user);
-            users.splice(users.indexOf(user));
-            io.emit("updateUsers", users);
+            io.to(roomID).emit("userDisconnect", user);
+            if (users && users[roomID]) {
+                users[roomID].splice(users[roomID].indexOf(user));
+            }
+            io.to(roomID).emit("updateUsers", users[roomID]);
         } else {
             console.log("Host disconnected");
         }
     });
 
-    socket.on("hostLoad", () => {
-        console.log("Host joined");
-        // Send out any current users
-        io.emit("scoreUpdate", users);
-        io.emit("updateUsers", users);
-    });
-    socket.on("hostScoreUpdate", (userName, amount) => {
+    socket.on("hostScoreUpdate", (userName, amount, roomID) => {
         // Update the user's scores
-        updateScore(userName.toUpperCase(), amount);
+        updateScore(userName.toUpperCase(), amount, roomID);
         // Send out the new scores to the users
-        io.emit("updateUsers", users);
+        io.to(roomID).emit("updateUsers", users[roomID], roomID);
     });
 });
 
-function updateScore(userName, amount) {
+function updateScore(userName, amount, roomID) {
     console.log("Updating scores: " + userName + ", " + amount);
-    const user = users.find(u => u.name === userName);
+    const user = users[roomID].find(u => u.name === userName);
     if (!user) {
         console.log("Something broke, I could not find the user to update");
     } else {
         user.score += parseInt(amount);
     }
+}
+
+const letters = "abcdefghijklmnopqrstuvwxyz";
+const numbers = "1234567890";
+const charset = letters + letters.toUpperCase() + numbers;
+
+function randomString(length) {
+    let res = "";
+    for (let i=0; i < length; i++) {
+        res += charset[Math.floor(Math.random()*charset.length)];
+    }
+    return res;
 }
 
 server.listen(PORT, () => console.log("Listening on " + PORT));
