@@ -154,7 +154,7 @@ body {
     height: 25px;
 }
 .buzzer {
-    width: 1px;
+    width: 20px;
     height: 1px;
     border-top: 0;
     border-bottom: 0;
@@ -170,6 +170,7 @@ body {
     border-top: 15px solid transparent;
     border-bottom: 15px solid transparent;
     border-right: 20px solid red;
+    width: 0;
 }
 
 #history {
