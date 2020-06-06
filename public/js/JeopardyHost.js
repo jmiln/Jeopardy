@@ -83,7 +83,7 @@ function saveQuestions() {
     localStorage.setItem("questions", JSON.stringify(questions));
 }
 function loadSavedQuestions(init=false) {
-    const qs = JSON.parse(localStorage.getItem("questions")) || {};
+    const qs = JSON.parse(localStorage.getItem("questions"));
     if (qs) {
         questions = qs;
         loadBoard();
