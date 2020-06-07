@@ -127,18 +127,16 @@ io.on("connection", socket => {
             if (users[socket.id]) {
                 // If there is a user, then there's a room, so tell the host that they left
                 const roomID = users[socket.id];
-                const user = rooms[roomID].find(u => u.socketID == socket.id);
-
-                // Remove the user from the room's scoreboard if they were in a room
                 if (rooms[roomID]) {
+                    const user = rooms[roomID].find(u => u.socketID == socket.id);
+
+                    // Remove the user from the room's scoreboard if they were in a room
+                    console.log((user ? user.name : "User") + " disconnected from " + roomID);
+
                     rooms[roomID].splice(rooms[roomID].indexOf(user), 1);
+                    io.to(roomID).emit("userDisconnect", user);
+                    io.to(roomID).emit("updateUsers", rooms[roomID]);
                 }
-                console.log(user.name + " disconnected from " + roomID);
-                io.to(roomID).emit("userDisconnect", user);
-                if (rooms && rooms[roomID]) {
-                    rooms[roomID].splice(rooms[roomID].indexOf(user));
-                }
-                io.to(roomID).emit("updateUsers", rooms[roomID]);
             } else {
                 // The user never joined a room, so didn't get assigned a name or room
             }
@@ -154,6 +152,7 @@ io.on("connection", socket => {
 });
 
 function updateScore(uID, amount, roomID) {
+    if (!rooms || !rooms[roomID]) return false;
     const user = rooms[roomID].find(u => u.socketID === uID);
     console.log("Updating scores: " + user.name + ", " + amount);
     if (!user) {
