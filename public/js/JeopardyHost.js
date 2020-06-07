@@ -3,7 +3,6 @@ const socket = io()
 const log = [];
 const totalColumns = 5;
 
-let room = {};
 let selectedValue = 0;
 let currentCat = "";
 let boardWidth, boardHeight;
@@ -61,7 +60,7 @@ function loadBoard() {
 
                 const allSelected = document.getElementsByClassName("selected");
                 while (allSelected.length > 0) {
-                    allSelected[0].classList.remove('selected');
+                    allSelected[0].classList.remove("selected");
                 }
                 thisCell.classList.toggle("selected");
 
@@ -71,7 +70,7 @@ function loadBoard() {
                 } else {
                     thisCell.classList.remove("visited");
                 }
-            }
+            };
         });
     }
 
@@ -125,7 +124,7 @@ function getFontSize(textLength) {
     const baseSize = 36;
     if (textLength >= 15) {
         const size = baseSize - textLength;
-      return `${size > 20 ? size : 20}px`
+        return `${size > 20 ? size : 20}px`
     }
     return `${baseSize}px`;
 }
@@ -468,6 +467,7 @@ socket.on("hostJoined", roomID => {
     if (config.debug) console.log("Host got roomID: " + roomID);
     config.roomID = roomID;
     document.getElementById("roomID").innerText = roomID;
+    document.getElementById("roomID").href = "/?roomID=" + roomID;
 });
 socket.on("updateUsers", users => {
     if (config.debug) console.log("Socket reloading users");

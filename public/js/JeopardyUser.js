@@ -20,23 +20,39 @@ function loadFunc() {
     buzzerBtn.style.height = buttonSize + "px";
 }
 
-const socket     = io()
-const formDiv    = document.querySelector("#reg")
-const buzzerDiv  = document.querySelector("#buzzer")
-const buzzerName = document.querySelector("#buzzer #uName");
+const socket      = io()
+const formDiv     = document.querySelector("#reg")
+const buzzerDiv   = document.querySelector("#buzzer")
+const buzzerName  = document.querySelector("#buzzer #uName");
 const buzzerScore = document.querySelector("#buzzer #uScore");
 
 let user = {};
 
 function getUserInfo() {
     user = JSON.parse(localStorage.getItem("user")) || {};
+    const winLocVars = getVariables();
     if (user.name) {
         formDiv.querySelector("[name=name]").value = user.name.toProperCase();
+    }
+    if (winLocVars.roomID && winLocVars.roomID.length === 6 && winLocVars.roomID.match(/[a-zA-Z0-9]{6}/)) {
+        formDiv.querySelector("[name=room]").value = winLocVars.roomID;
+    } else if (user.roomID) {
         formDiv.querySelector("[name=room]").value = user.roomID;
     }
 }
 function saveUserInfo() {
     localStorage.setItem("user", JSON.stringify(user));
+}
+
+function getVariables() {
+    const query = window.location.search.substring(1);
+    const vars = query.split(/&(?![A-Za-z]+;|#[0-9]+;)/);
+    const out = {};
+    vars.forEach((v) => {
+        const [key, val] = v.split("=");
+        out[key] = val;
+    });
+    return out;
 }
 
 formDiv.addEventListener("submit", async (e) => {
