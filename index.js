@@ -131,7 +131,7 @@ io.on("connection", socket => {
                     const user = rooms[roomID].find(u => u.socketID == socket.id);
 
                     // Remove the user from the room's scoreboard if they were in a room
-                    console.log((user ? user.name : "User") + " disconnected from " + roomID);
+                    console.log(`[Room ${roomID}] ${user ? user.name : "User"} disconnected`);
 
                     rooms[roomID].splice(rooms[roomID].indexOf(user), 1);
                     io.to(roomID).emit("userDisconnect", user);
