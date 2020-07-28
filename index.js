@@ -24,9 +24,9 @@ const hosts = {};  // A mapping of host's socket IDs to the roomID they're hosti
 const rooms = {};  // This contains all the rooms, and which users are in there
 
 // io.on('connection', function (socket) {
-//     socket.emit('request', /* */ ); // emit an event to the socket
-//     io.emit('broadcast', /* */ ); // emit an event to all connected sockets
-//     socket.on('reply', function () { /* */ }); // listen to the event
+//     socket.emit('request', /* */ );              // Emit an event to the socket
+//     io.emit('broadcast', /* */ );                // Emit an event to all connected sockets
+//     socket.on('reply', function () { /* */ });   // Listen to the event
 // });
 
 io.on("connection", socket => {
@@ -66,15 +66,18 @@ io.on("connection", socket => {
     });
 
     socket.on("hostJoin", (roomID) => {
-        console.log("Host joined - " + socket.id);
         type = "host";
         // Send the host an ID for people to connect to
         if (!roomID || !roomID.toString().length === ROOM_ID_LEN || !roomID.toString.match(/[a-zA-Z0-9]/)) {
-            roomID = randomString(ROOM_ID_LEN);
+            while (!rooms[roomID]) {
+                // Ensure that there are no duplicate rooms created
+                roomID = randomString(ROOM_ID_LEN);
+                rooms[roomID] = rooms[roomID] ? rooms[roomID] : [];
+            }
         }
-        rooms[roomID] = [];
         socket.join(roomID);
         socket.emit("hostJoined", roomID);
+        console.log(`[Room ${roomID}] Host joined - ${socket.id}`);
 
         hosts[socket.id] = {
             roomID: roomID
@@ -86,7 +89,7 @@ io.on("connection", socket => {
     });
 
     socket.on("clearBuzzes", (roomID) => {
-        console.log("Clearing Buzzes");
+        console.log(`Clearing Buzzes for ${roomID}`);
         for (const user of rooms[roomID]) {
             user.buzzed = false;
         }
@@ -94,7 +97,7 @@ io.on("connection", socket => {
     });
 
     socket.on("clearScores", (roomID) => {
-        console.log("Clearing Scores");
+        console.log(`Clearing Scores for room ${roomID}`);
         for (const user of rooms[roomID]) {
             user.score = 0;
         }
@@ -104,7 +107,7 @@ io.on("connection", socket => {
     socket.on("buzz", (user) => {
         // Highlight the user when they  buzz in
         if (!rooms[user.roomID].find(a => a.buzzed)) {
-            console.log(user.name + " buzzed in");
+            console.log(user.name + " buzzed in, in room " + user.roomID);
             const u = rooms[user.roomID].find(u => u.socketID === socket.id);
             if (u) {
                 u.buzzed = true;
