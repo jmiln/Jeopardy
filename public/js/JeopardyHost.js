@@ -1,4 +1,4 @@
-const socket = io()
+const socket = io();  // eslint-disable-line no-undef
 
 const log = [];
 const totalColumns = 5;
@@ -23,7 +23,7 @@ String.prototype.toProperCase = function() {
     });
 };
 
-function init() {
+function init() { // eslint-disable-line no-undef
     loadBoard();
 
     socket.emit("hostJoin");
@@ -39,7 +39,7 @@ function loadBoard() {
         Object.keys(questions[board]).forEach((cat, ix) => {
             catHeaders[ix].innerText = cat;
             catHeaders[ix].id = `${board}-${ix}`;
-            catHeaders[ix].style.fontSize = getFontSize(cat.length)
+            catHeaders[ix].style.fontSize = getFontSize(cat.length);
         });
 
         const boardCells = document.querySelectorAll(`#${board} tbody td`);
@@ -65,6 +65,7 @@ function loadBoard() {
                 thisCell.classList.toggle("selected");
 
                 if (!thisCell.classList.contains("visited")) {
+                    socket.emit("qSelect", config.roomID, thisQ);
                     thisCell.classList.add("visited");
                     showQuestion(boardID, thisX, thisY);
                 } else {
@@ -124,7 +125,7 @@ function getFontSize(textLength) {
     const baseSize = 36;
     if (textLength >= 15) {
         const size = baseSize - textLength;
-        return `${size > 20 ? size : 20}px`
+        return `${size > 20 ? size : 20}px`;
     }
     return `${baseSize}px`;
 }
@@ -324,6 +325,7 @@ function closeQDD() {
             open.classList.add("hidden");
         }
     });
+    socket.emit("qClear", config.roomID);
 }
 
 function loadUsers(users) {
@@ -448,7 +450,7 @@ function toggleEdit() {
         } else {
             td.onclick = function() {
                 showEditCat(this);
-            }
+            };
         }
     });
 }
@@ -461,7 +463,7 @@ window.onclick = function (event) {
             dropdowns.classList.add("hidden");
         }
     }
-}
+};
 
 socket.on("hostJoined", roomID => {
     if (config.debug) console.log("Host got roomID: " + roomID);

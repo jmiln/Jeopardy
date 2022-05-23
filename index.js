@@ -19,9 +19,37 @@ app.get("/host", (req, res) => {
 });
 
 const {inspect} = require("util");
-const users = {};  // A mapping of user's socket IDs to the roomID they are in
-const hosts = {};  // A mapping of host's socket IDs to the roomID they're hosting
-const rooms = {};  // This contains all the rooms, and which users are in there
+const users = { // A mapping of user's socket IDs to the roomID they are in
+    // socketID: {
+    //     roomID: "blah"
+    // }
+};
+const hosts = { // A mapping of host's socket IDs to the roomID they're hosting
+    // socketID: {
+    //     roomID: "blah"
+    // }
+};
+const rooms = { // This contains all the rooms, and which users are in there
+    // roomID: {
+    //     settings: {
+    //         gameType: buzzer || answer,
+    //         questions: {},
+    //     },
+    //     currentQuestion: "blah",      // Send this over to the players when a question is selected
+    //     currentAnswers: [             // Wipe this out each time a question is backed out from
+    //         {
+    //             user: socketID,
+    //             answer: "blah"
+    //         }
+    //     ],
+    //     users: [
+    //         {
+    //             name: "username",
+    //             score: 0
+    //         }
+    //     ]
+    // }
+};
 
 // io.on('connection', function (socket) {
 //     socket.emit('request', /* */ );              // Emit an event to the socket
@@ -32,6 +60,7 @@ const rooms = {};  // This contains all the rooms, and which users are in there
 io.on("connection", socket => {
     let type = "";
     socket.on("join", (user, validate) => {
+        // TODO Should make it so if a user joins back, they get their points back, so find an ID somewhere that it can keep then that + the name
         type = "user";
         const userList = rooms[user.roomID] ? rooms[user.roomID].filter(u => u.name.toUpperCase() === user.name.toUpperCase()) : null;
         if (!userList) {
@@ -64,6 +93,33 @@ io.on("connection", socket => {
         io.to(user.roomID).emit("userConnect", user);
         io.to(user.roomID).emit("updateUsers", rooms[user.roomID]);
     });
+
+    socket.on("qSelect", (roomID, question) => {
+        // question: {question, answer, amount}
+        console.log(roomID, question);
+        rooms[roomID].currentQuestion = question;
+        updateQuestions(roomID);
+    });
+
+    socket.on("qAnswer", (roomID, answer) => {
+        // answer: {userID, answer}
+        console.log(roomID, answer);
+        rooms[roomID].currentAnswers.push(answer);
+    });
+
+    socket.on("qClear", (roomID) => {
+        // Wipe out currentQuestion/ currentAnswers, and break the players out of the answering screen
+        rooms[roomID].currentQuestion = null;
+        rooms[roomID].currentAnswers = [];
+
+        // Tell the players to update based on the current questions and such
+        updateQuestions(roomID);
+        console.log("Cleared current q/a");
+    });
+
+    function updateQuestions(roomID) {
+        io.to(roomID).emit("qUpdate", rooms[roomID].currentQuestion);
+    }
 
     socket.on("hostJoin", (roomID) => {
         type = "host";
@@ -121,8 +177,9 @@ io.on("connection", socket => {
 
     socket.on("disconnect", () => {
         if (type === "host") {
+            if (!hosts[socket.id]) return console.log("Host left without registering?");
             // Host disconnected, kick all users out
-            console.log("Host disconnected");
+            console.log(`[Room ${hosts[socket.id].roomID}] Host disconnected`);
             io.to(hosts[socket.id].roomID).emit("forceClose");
             delete rooms[hosts[socket.id].roomID];
         } else {

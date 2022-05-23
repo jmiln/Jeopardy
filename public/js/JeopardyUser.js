@@ -5,7 +5,7 @@ String.prototype.toProperCase = function() {
     });
 };
 
-function loadFunc() {
+function loadFunc() { // eslint-disable-line no-unused-vars
     const windowHeight = window.innerHeight;
     const windowWidth  = window.innerWidth;
     let buttonSize = 0;
@@ -23,9 +23,9 @@ function loadFunc() {
     buzzerBtn.style.height = buttonSize + "px";
 }
 
-const socket      = io()
-const formDiv     = document.querySelector("#reg")
-const buzzerDiv   = document.querySelector("#buzzer")
+const socket      = io(); // eslint-disable-line no-undef
+const formDiv     = document.querySelector("#reg");
+const buzzerDiv   = document.querySelector("#buzzer");
 const buzzerName  = document.querySelector("#buzzer #uName");
 const buzzerScore = document.querySelector("#buzzer #uScore");
 
